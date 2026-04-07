@@ -6,6 +6,7 @@ format: html
 ```{r}
 #| label: packages-setup
 library(tidyverse)
+library(here)
 ```
 
 ```{r}
@@ -34,6 +35,6 @@ the columns in the data have been assigned certain classes like (double, charact
 
 # visuals
 
-![](C:/Users/happy/Downloads/Untitled-2026-04-06-1719.png)
+![](Untitled-2026-04-06-1719.png)
 
-![](C:/Users/happy/Downloads/Untitled-2026-04-06-1719(1).png)
+![](Untitled-2026-04-06-1719(1).png)
