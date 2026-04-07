@@ -6,7 +6,6 @@ format: html
 ```{r}
 #| label: packages-setup
 library(tidyverse)
-library(here)
 ```
 
 ```{r}
