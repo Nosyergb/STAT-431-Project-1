@@ -8,6 +8,8 @@ format: html
 library(tidyverse)
 ```
 
+### Check-In 1
+
 ```{r}
 #| label: load_data
 tuesdata <- tidytuesdayR::tt_load('2021-01-26')
@@ -25,7 +27,7 @@ the columns in the data have been assigned certain classes like (double, charact
 # Research Questions
 
 1.  Has the types of plastics that are being used changed significantly from 2019 to 2020
-2.  does the number of volunteers correlate with the amount of counting events
+2.  How does the gap in total plastic consumption change between countries between 2019 and 2020 
 
 # Supplemental Data Questions
 
@@ -37,3 +39,139 @@ the columns in the data have been assigned certain classes like (double, charact
 ![](Untitled-2026-04-06-1719.png)
 
 ![](Untitled-2026-04-06-1719(1).png)
+
+
+### Check-In 2
+
+```{r}
+#| label: Summary 1 (non-modified, Function)
+
+# How does the difference in total plastic consumption change between countries between 2019 and 2020
+
+country_plas_diff <- function(country1, country2) {
+  plastics |>
+    filter(country %in% c(country1, country2)) |>
+    group_by(year, country) |>
+    summarize(tot_plastic = sum(grand_total), .groups = 'drop') |>
+    arrange(desc(year)) |>
+    group_by(year) |>
+    summarize(plastic_diff = tot_plastic[country == country1] - tot_plastic[country == country2]) |>
+    mutate(comparison = paste0(country1, ' - ', country2, ' (', year,')')) |>
+    select(comparison, plastic_diff)
+}
+
+country_plas_diff('Ukraine', 'China')
+```
+
+```{r}
+#| label: Summary 2 (non-modified, Iteration)
+
+# Has the types of plastics that are being used changed significantly from 2019 to 2020
+
+plastic_types <- c("hdpe", "ldpe", "pet", "pp", "ps", "pvc", "o", "grand_total")
+
+changes <- map_dbl(plastic_types,
+                   function(type) {
+                      plastics |>
+                        group_by(year) |>
+                        summarize(total = sum(across(all_of(type)), na.rm = TRUE),
+                                  .groups = "drop") |>
+                        arrange(year) |>
+                        pull(total) |>
+                      diff()
+                      }
+                   )
+
+tibble(plastic_type = plastic_types,
+       `2020-2019` = changes)
+```
+
+```{r}
+#| label: Summary 3 (modified, Function)
+
+# On average, how much plastic do countries produce per unit of GDP?
+
+library(here)
+
+# load gdp data, from worldbank.org
+# https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?most_recent_year_desc=false
+# data was pivoted to create a year variable
+# cleaning GDP data to match plastics data
+GDP_2019_2020 <- read.csv(here("GDP_data.csv"), skip = 4) |>
+  select(Country.Name, X2019, X2020) |>
+  rename(`2019` = X2019, `2020` = X2020) |>
+  pivot_longer(
+    cols = c(`2019`, `2020`),
+    names_to = "year",
+    values_to = "gdp") |>
+  mutate(year = as.numeric(year)) |>
+  rename(country = Country.Name) |>
+  mutate(
+    country = recode(
+      country,
+      "Cote d'Ivoire" = "Cote D_ivoire",
+      "Ecuador" = "ECUADOR",
+      "Hong Kong SAR, China" = "Hong Kong",
+      "Korea, Rep." = "Korea",
+      "Nigeria" = "NIGERIA",
+      "Turkiye" = "Turkey",
+      "United Kingdom" = "United Kingdom of Great Britain & Northern Ireland",
+      "United States" = "United States of America",
+      "Viet Nam" = "Vietnam"
+    )
+  )
+
+# Summarizes total plastic use by country and year, excluding non-country entries.
+plastic_summary <- plastics |>
+  filter(country != "EMPTY") |>
+  group_by(country, year) |>
+  summarize(total_plastic = sum(grand_total, na.rm = TRUE), .groups = "drop")
+
+# combine the data
+combined_data <- plastic_summary |>
+  inner_join(GDP_2019_2020, by = c("country", "year"))
+
+# summary
+plastic_wealth_summary <- function(year_input) {
+  combined_data |>
+    filter(year == year_input) |>
+    mutate(plastic_per_gdp = total_plastic / gdp) |>
+    summarize(year = year_input,
+              avg_plastic_per_gdp = mean(plastic_per_gdp, na.rm = TRUE))
+}
+
+plastic_wealth_summary(2020)
+```
+
+```{r}
+#| label: summary 3 (modified, Iteration)
+
+# On average, how much plastic do countries produce per unit of GDP, by country wealth size and year
+# my original other question was too difficult to fidn data for, so I answered this question
+
+years <- c(2019, 2020)
+
+results <- tibble()
+
+group_gdp_plastics_data <- combined_data |> 
+  mutate(wealth_group = factor(ntile(gdp, 3), labels = c("Low", "Medium", "High")),
+         plastic_per_gdp = total_plastic / gdp)
+
+for (y in years) {
+  temp <- group_gdp_plastics_data |>
+    filter(year == y) |>
+    mutate(
+      plastic_per_gdp = total_plastic / gdp
+    ) |>
+    group_by(wealth_group) |>
+    summarize(
+      avg_plastic_per_gdp = mean(plastic_per_gdp, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    mutate(year = y)
+  
+  results <- bind_rows(results, temp)
+}
+
+results
+```
