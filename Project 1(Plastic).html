@@ -114,6 +114,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
 </div>
 </div>
+<section id="check-in-1" class="level3">
+<h3 class="anchored" data-anchor-id="check-in-1">Check-In 1</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>tuesdata <span class="ot">&lt;-</span> tidytuesdayR<span class="sc">::</span><span class="fu">tt_load</span>(<span class="st">'2021-01-26'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
@@ -127,6 +129,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>plastics <span class="ot">&lt;-</span> tuesdata<span class="sc">$</span>plastics</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
+</section>
 <section id="background" class="level1">
 <h1>Background</h1>
 <p>The data comes from Break Free from Plastic (BFFP). The data contains variables relating to types of plastic, where the plastic comes from, and country.</p>
@@ -139,7 +142,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1>Research Questions</h1>
 <ol type="1">
 <li>Has the types of plastics that are being used changed significantly from 2019 to 2020</li>
-<li>does the number of volunteers correlate with the amount of counting events</li>
+<li>How does the gap in total plastic consumption change between countries between 2019 and 2020</li>
 </ol>
 </section>
 <section id="supplemental-data-questions" class="level1">
@@ -153,6 +156,169 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1>visuals</h1>
 <p><img src="Untitled-2026-04-06-1719.png" class="img-fluid"></p>
 <p><img src="Untitled-2026-04-06-1719(1).png" class="img-fluid"></p>
+<section id="check-in-2" class="level3">
+<h3 class="anchored" data-anchor-id="check-in-2">Check-In 2</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># How does the difference in total plastic consumption change between countries between 2019 and 2020</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>country_plas_diff <span class="ot">&lt;-</span> <span class="cf">function</span>(country1, country2) {</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  plastics <span class="sc">|&gt;</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(country <span class="sc">%in%</span> <span class="fu">c</span>(country1, country2)) <span class="sc">|&gt;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(year, country) <span class="sc">|&gt;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">tot_plastic =</span> <span class="fu">sum</span>(grand_total), <span class="at">.groups =</span> <span class="st">'drop'</span>) <span class="sc">|&gt;</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(<span class="fu">desc</span>(year)) <span class="sc">|&gt;</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(year) <span class="sc">|&gt;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">plastic_diff =</span> tot_plastic[country <span class="sc">==</span> country1] <span class="sc">-</span> tot_plastic[country <span class="sc">==</span> country2]) <span class="sc">|&gt;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">comparison =</span> <span class="fu">paste0</span>(country1, <span class="st">' - '</span>, country2, <span class="st">' ('</span>, year,<span class="st">')'</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(comparison, plastic_diff)</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="fu">country_plas_diff</span>(<span class="st">'Ukraine'</span>, <span class="st">'China'</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 2
+  comparison             plastic_diff
+  &lt;chr&gt;                         &lt;dbl&gt;
+1 Ukraine - China (2019)         2758
+2 Ukraine - China (2020)         5558</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Has the types of plastics that are being used changed significantly from 2019 to 2020</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>plastic_types <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"hdpe"</span>, <span class="st">"ldpe"</span>, <span class="st">"pet"</span>, <span class="st">"pp"</span>, <span class="st">"ps"</span>, <span class="st">"pvc"</span>, <span class="st">"o"</span>, <span class="st">"grand_total"</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>changes <span class="ot">&lt;-</span> <span class="fu">map_dbl</span>(plastic_types,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                   <span class="cf">function</span>(type) {</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>                      plastics <span class="sc">|&gt;</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>                        <span class="fu">group_by</span>(year) <span class="sc">|&gt;</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>                        <span class="fu">summarize</span>(<span class="at">total =</span> <span class="fu">sum</span>(<span class="fu">across</span>(<span class="fu">all_of</span>(type)), <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>                                  <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>                        <span class="fu">arrange</span>(year) <span class="sc">|&gt;</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>                        <span class="fu">pull</span>(total) <span class="sc">|&gt;</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>                      <span class="fu">diff</span>()</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>                      }</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>                   )</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(<span class="at">plastic_type =</span> plastic_types,</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>       <span class="st">`</span><span class="at">2020-2019</span><span class="st">`</span> <span class="ot">=</span> changes)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 8 × 2
+  plastic_type `2020-2019`
+  &lt;chr&gt;              &lt;dbl&gt;
+1 hdpe               -1538
+2 ldpe              -41716
+3 pet              -111892
+4 pp                 25744
+5 ps                 -2317
+6 pvc                 1261
+7 o                -385693
+8 grand_total      -511968</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># On average, how much plastic do countries produce per unit of GDP?</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>here() starts at C:/Users/happy/CP_2026-2025/STAT 431/STAT-431-Project-1</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># load gdp data, from worldbank.org</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?most_recent_year_desc=false</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># data was pivoted to create a year variable</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co"># cleaning GDP data to match plastics data</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>GDP_2019_2020 <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">here</span>(<span class="st">"GDP_data.csv"</span>), <span class="at">skip =</span> <span class="dv">4</span>) <span class="sc">|&gt;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Country.Name, X2019, X2020) <span class="sc">|&gt;</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="st">`</span><span class="at">2019</span><span class="st">`</span> <span class="ot">=</span> X2019, <span class="st">`</span><span class="at">2020</span><span class="st">`</span> <span class="ot">=</span> X2020) <span class="sc">|&gt;</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="fu">c</span>(<span class="st">`</span><span class="at">2019</span><span class="st">`</span>, <span class="st">`</span><span class="at">2020</span><span class="st">`</span>),</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">"year"</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"gdp"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">year =</span> <span class="fu">as.numeric</span>(year)) <span class="sc">|&gt;</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">country =</span> Country.Name) <span class="sc">|&gt;</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">country =</span> <span class="fu">recode</span>(</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>      country,</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Cote d'Ivoire"</span> <span class="ot">=</span> <span class="st">"Cote D_ivoire"</span>,</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Ecuador"</span> <span class="ot">=</span> <span class="st">"ECUADOR"</span>,</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Hong Kong SAR, China"</span> <span class="ot">=</span> <span class="st">"Hong Kong"</span>,</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Korea, Rep."</span> <span class="ot">=</span> <span class="st">"Korea"</span>,</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Nigeria"</span> <span class="ot">=</span> <span class="st">"NIGERIA"</span>,</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Turkiye"</span> <span class="ot">=</span> <span class="st">"Turkey"</span>,</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>      <span class="st">"United Kingdom"</span> <span class="ot">=</span> <span class="st">"United Kingdom of Great Britain &amp; Northern Ireland"</span>,</span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>      <span class="st">"United States"</span> <span class="ot">=</span> <span class="st">"United States of America"</span>,</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Viet Nam"</span> <span class="ot">=</span> <span class="st">"Vietnam"</span></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Summarizes total plastic use by country and year, excluding non-country entries.</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>plastic_summary <span class="ot">&lt;-</span> plastics <span class="sc">|&gt;</span></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(country <span class="sc">!=</span> <span class="st">"EMPTY"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(country, year) <span class="sc">|&gt;</span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">total_plastic =</span> <span class="fu">sum</span>(grand_total, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a><span class="co"># combine the data</span></span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>combined_data <span class="ot">&lt;-</span> plastic_summary <span class="sc">|&gt;</span></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(GDP_2019_2020, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"country"</span>, <span class="st">"year"</span>))</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a><span class="co"># summary</span></span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a>plastic_wealth_summary <span class="ot">&lt;-</span> <span class="cf">function</span>(year_input) {</span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a>  combined_data <span class="sc">|&gt;</span></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(year <span class="sc">==</span> year_input) <span class="sc">|&gt;</span></span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">plastic_per_gdp =</span> total_plastic <span class="sc">/</span> gdp) <span class="sc">|&gt;</span></span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(<span class="at">year =</span> year_input,</span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>              <span class="at">avg_plastic_per_gdp =</span> <span class="fu">mean</span>(plastic_per_gdp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a><span class="fu">plastic_wealth_summary</span>(<span class="dv">2020</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 2
+   year avg_plastic_per_gdp
+  &lt;dbl&gt;               &lt;dbl&gt;
+1  2020        0.0000000619</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># On average, how much plastic do countries produce per unit of GDP, by country wealth size and year</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># my original other question was too difficult to fidn data for, so I answered this question</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>years <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">2019</span>, <span class="dv">2020</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">tibble</span>()</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>group_gdp_plastics_data <span class="ot">&lt;-</span> combined_data <span class="sc">|&gt;</span> </span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">wealth_group =</span> <span class="fu">factor</span>(<span class="fu">ntile</span>(gdp, <span class="dv">3</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Medium"</span>, <span class="st">"High"</span>)),</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">plastic_per_gdp =</span> total_plastic <span class="sc">/</span> gdp)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (y <span class="cf">in</span> years) {</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  temp <span class="ot">&lt;-</span> group_gdp_plastics_data <span class="sc">|&gt;</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(year <span class="sc">==</span> y) <span class="sc">|&gt;</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>      <span class="at">plastic_per_gdp =</span> total_plastic <span class="sc">/</span> gdp</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(wealth_group) <span class="sc">|&gt;</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarize</span>(</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>      <span class="at">avg_plastic_per_gdp =</span> <span class="fu">mean</span>(plastic_per_gdp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>      <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">|&gt;</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">year =</span> y)</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>  results <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(results, temp)</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>results</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  wealth_group avg_plastic_per_gdp  year
+  &lt;fct&gt;                      &lt;dbl&gt; &lt;dbl&gt;
+1 Low                0.000000374    2019
+2 Medium             0.0000000457   2019
+3 High               0.0000000182   2019
+4 Low                0.000000171    2020
+5 Medium             0.0000000223   2020
+6 High               0.00000000588  2020</code></pre>
+</div>
+</div>
+</section>
 </section>
 
 </main>
