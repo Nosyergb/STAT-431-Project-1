@@ -63,6 +63,8 @@ country_plas_diff <- function(country1, country2) {
 country_plas_diff('Ukraine', 'China')
 ```
 
+from 2019 to 2020 the gap in total plastic produced between Ukraine and china has grown more than 100%
+
 ```{r}
 #| label: Summary 2 (non-modified, Iteration)
 
@@ -85,6 +87,8 @@ changes <- map_dbl(plastic_types,
 tibble(plastic_type = plastic_types,
        `2020-2019` = changes)
 ```
+
+most types of plastics are being used less in 2020 when compared to 2019, the only exceptions being Polypropylene and Polyvinyl chloride
 
 ```{r}
 #| label: Summary 3 (modified, Function)
@@ -143,6 +147,8 @@ plastic_wealth_summary <- function(year_input) {
 plastic_wealth_summary(2020)
 ```
 
+in 2020, the average amount of plastic produced per GDP for a country was 6.189 * 10^-8
+
 ```{r}
 #| label: summary 3 (modified, Iteration)
 
@@ -175,3 +181,5 @@ for (y in years) {
 
 results
 ```
+
+the lowest average plastic per GDP belonged to the wealthiest countries in 2020, while the highest average plastic per GDP belonged to the least wealthy countries in 2020.
