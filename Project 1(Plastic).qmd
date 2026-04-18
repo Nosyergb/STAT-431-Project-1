@@ -6,6 +6,10 @@ format: html
 ```{r}
 #| label: packages-setup
 library(tidyverse)
+library(glue)
+library(here)
+library(jsonlite)
+library(purrr)
 ```
 
 ### Check-In 1
@@ -95,8 +99,6 @@ most types of plastics are being used less in 2020 when compared to 2019, the on
 
 # On average, how much plastic do countries produce per unit of GDP?
 
-library(here)
-
 # load gdp data, from worldbank.org
 # https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?most_recent_year_desc=false
 # data was pivoted to create a year variable
@@ -183,3 +185,62 @@ results
 ```
 
 the lowest average plastic per GDP belonged to the wealthiest countries in 2020, while the highest average plastic per GDP belonged to the least wealthy countries in 2020.
+
+
+### Check-In 3
+
+```{r}
+plastics <- plastics |>
+  filter(country != "EMPTY") |>
+  mutate(country = recode(
+    country,
+    "Taiwan_ Republic of China (ROC)" = "Taiwan, Province of China",
+    "Cote D_ivoire" = "Côte d'Ivoire",
+    "ECUADOR" = "Ecuador",
+    "NIGERIA" = "Nigeria",
+    "Netherlands" = "Netherlands, Kingdom of the",
+    "Tanzania" = "Tanzania, United Republic of",
+    "Turkey" = "Türkiye",
+    "United Kingdom" = "United Kingdom of Great Britain and Northern Ireland",
+    "Vietnam" = "Viet Nam",
+   "Korea" = "Korea, Republic of",
+    "United Kingdom of Great Britain & Northern Ireland" = "United Kingdom of Great Britain and Northern Ireland"
+  ))
+
+
+Country_Codes <- read.csv(here('Country-Codes.csv'),
+                          colClasses = c("character", "character")) |>
+  rename(country = name) |>
+  select(country, country.code)
+
+plastics_w_code <- plastics |>
+  left_join(Country_Codes, by = "country")
+
+plastics_w_code |>
+  filter(is.na(country.code)) |>
+  distinct(country)
+
+codes <- plastics_w_code |>
+  distinct(country.code) |>
+  pull(country.code)
+
+
+collect_api_data <- function(code) {
+  base_url <- 'https://restcountries.com/v3.1/alpha/'
+  
+  ctry_url <- glue('{base_url}','{code}')
+  
+  ctry_data <- fromJSON(ctry_url)
+  
+  if(length(ctry_data) == 0){
+    return(NA)
+  }
+  
+  else{
+    ctry_data |>
+      pull(languages)
+  }
+} 
+
+Languages <- map(codes, collect_api_data)
+```
