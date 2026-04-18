@@ -190,6 +190,10 @@ the lowest average plastic per GDP belonged to the wealthiest countries in 2020,
 ### Check-In 3
 
 ```{r}
+# note: GDP data comes from Check In 2
+
+# matching countries to csv in order to match codes
+
 plastics <- plastics |>
   filter(country != "EMPTY") |>
   mutate(country = recode(
@@ -207,23 +211,25 @@ plastics <- plastics |>
     "United Kingdom of Great Britain & Northern Ireland" = "United Kingdom of Great Britain and Northern Ireland"
   ))
 
+# reading in csv, found here https://github.com/lukes/ISO-3166-Countries-with-Regional-Codes/blob/master/all/all.csv
 
 Country_Codes <- read.csv(here('Country-Codes.csv'),
                           colClasses = c("character", "character")) |>
   rename(country = name) |>
   select(country, country.code)
 
+# join
+
 plastics_w_code <- plastics |>
   left_join(Country_Codes, by = "country")
 
-plastics_w_code |>
-  filter(is.na(country.code)) |>
-  distinct(country)
+# take unique country codes
 
 codes <- plastics_w_code |>
   distinct(country.code) |>
   pull(country.code)
 
+# api call function
 
 collect_api_data <- function(code) {
   base_url <- 'https://restcountries.com/v3.1/alpha/'
@@ -242,5 +248,62 @@ collect_api_data <- function(code) {
   }
 } 
 
+# iterate through unique codes
+
 Languages <- map(codes, collect_api_data)
+
+# given a list of data frames formatted weirdly, so pivoting
+
+Language_pivot <- function(list_df){
+  list_df |>
+    pivot_longer(cols = everything(),
+               names_to = 'Code',
+               values_to = 'Language') |>
+    select(Language)
+}
+
+# iterate through the list of data frames
+
+Languages <- map(Languages, Language_pivot)
+
+# combine the languages into one value
+
+Combine_lang <- function(list_df){
+  list_df |>
+    summarize(all_languages = paste(Language, collapse = ', '))
+}
+
+# iterate through list of data frames
+
+Languages <- map(Languages, Combine_lang)
+
+# pulll languages
+
+collect_lang <- function(list_df){
+  list_df |>
+    pull(all_languages)
+}
+
+# create languages data frame with codes and languages
+
+languages_df <- tibble(
+  country.code = codes,
+  all_languages = map(Languages, collect_lang))
+
+# checking how many columns I need for separating languages
+
+languages_df |>
+  mutate(n_lang = str_count(all_languages, ",") + 1) |>
+  pull(n_lang) |>
+  max()
+
+# join all data (including GDP data from Check-in 2), and separating languages
+
+Updated_Plastics <- plastics_w_code |>
+  inner_join(languages_df, by = 'country.code') |>
+  inner_join(combined_data, by = c('country', 'year')) |>
+  separate_wider_delim(cols = all_languages,
+                       delim = ", ",
+                       names = paste0("lang", 1:11),
+                       too_few = "align_start")
 ```
