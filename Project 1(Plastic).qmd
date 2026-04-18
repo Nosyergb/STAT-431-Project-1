@@ -277,7 +277,7 @@ Combine_lang <- function(list_df){
 
 Languages <- map(Languages, Combine_lang)
 
-# pulll languages
+# pull languages
 
 collect_lang <- function(list_df){
   list_df |>
@@ -297,7 +297,7 @@ languages_df |>
   pull(n_lang) |>
   max()
 
-# join all data (including GDP data from Check-in 2), and separating languages
+# join all data (including GDP data from Check-in 2), and separating languages (this is our "meta" dataset)
 
 Updated_Plastics <- plastics_w_code |>
   inner_join(languages_df, by = 'country.code') |>
@@ -307,3 +307,34 @@ Updated_Plastics <- plastics_w_code |>
                        names = paste0("lang", 1:11),
                        too_few = "align_start")
 ```
+
+```{r}
+# Example: plastic count per countries by language spoken
+Updated_Plastics |>
+  pivot_longer(
+    cols = starts_with("lang"),
+    names_to = "lang_num",
+    values_to = "language"
+  )
+
+Updated_Plastics |>
+  pivot_longer(
+    cols = starts_with("lang"),
+    names_to = "lang_num",
+    values_to = "language"
+  ) |>
+  filter(!is.na(language)) |>
+  ggplot(aes(x = language, y = total_plastic)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+According to the graph, countries that include English or Filipino among their reported languages tend to show higher maximum levels of plastic waste from 2019-2020. Other common languages include French and Italian, while Romansh and Swiss German display much greater variability in plastic waste, as indicated by the wide spread of their boxplots.
+
+```{r}
+Updated_Plastics |>
+  filter(!is.na(lang1)) |>
+  ggplot(aes(x = lang1, y = total_plastic)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+Based on this secondary graph, we can see that countries with English reported as their primary language easily produced the most plastic waste from 2019-2020. French-speaking countries follow in plastic waste production, though there is a noticeable drop-off in the maximum values after these groups.
