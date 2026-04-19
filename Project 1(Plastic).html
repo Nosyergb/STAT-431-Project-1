@@ -300,7 +300,7 @@ The following object is masked from 'package:purrr':
 <span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">tibble</span>()</span>
 <span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>group_gdp_plastics_data <span class="ot">&lt;-</span> combined_data <span class="sc">|&gt;</span> </span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">wealth_group =</span> <span class="fu">factor</span>(<span class="fu">ntile</span>(gdp, <span class="dv">3</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Medium"</span>, <span class="st">"High"</span>)),</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">wealth_group =</span> <span class="fu">factor</span>(<span class="fu">ntile</span>(gdp, <span class="dv">5</span>), <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Lower-Middle"</span>, <span class="st">"Middle"</span>, <span class="st">"Upper-Middle"</span>, <span class="st">"High"</span>)),</span>
 <span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">plastic_per_gdp =</span> total_plastic <span class="sc">/</span> gdp)</span>
 <span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (y <span class="cf">in</span> years) {</span>
@@ -321,15 +321,19 @@ The following object is masked from 'package:purrr':
 <span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a>results</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 3
-  wealth_group avg_plastic_per_gdp  year
-  &lt;fct&gt;                      &lt;dbl&gt; &lt;dbl&gt;
-1 Low                0.000000374    2019
-2 Medium             0.0000000457   2019
-3 High               0.0000000182   2019
-4 Low                0.000000171    2020
-5 Medium             0.0000000223   2020
-6 High               0.00000000588  2020</code></pre>
+<pre><code># A tibble: 10 × 3
+   wealth_group avg_plastic_per_gdp  year
+   &lt;fct&gt;                      &lt;dbl&gt; &lt;dbl&gt;
+ 1 Low                     5.81e- 7  2019
+ 2 Lower-Middle            7.06e- 8  2019
+ 3 Middle                  4.09e- 8  2019
+ 4 Upper-Middle            2.62e- 8  2019
+ 5 High                    9.18e-10  2019
+ 6 Low                     2.46e- 7  2020
+ 7 Lower-Middle            3.80e- 8  2020
+ 8 Middle                  2.12e- 8  2020
+ 9 Upper-Middle            1.14e- 8  2020
+10 High                    1.38e- 9  2020</code></pre>
 </div>
 </div>
 <p>the lowest average plastic per GDP belonged to the wealthiest countries in 2020, while the highest average plastic per GDP belonged to the least wealthy countries in 2020.</p>
@@ -486,55 +490,46 @@ The following object is masked from 'package:purrr':
 </div>
 <p>According to the graph, countries that include English or Filipino among their reported languages tend to show higher maximum levels of plastic waste from 2019-2020. Other common languages include French and Italian, while Romansh and Swiss German display much greater variability in plastic waste, as indicated by the wide spread of their boxplots.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Aggregate to country-year level</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Aggregate plastic data to country-year level</span></span>
 <span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>plastics_country <span class="ot">&lt;-</span> Updated_Plastics <span class="sc">|&gt;</span></span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(country, year, gdp) <span class="sc">|&gt;</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(country, year, gdp) <span class="sc">|&gt;</span>   </span>
 <span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">hdpe =</span> <span class="fu">sum</span>(hdpe, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">hdpe =</span> <span class="fu">sum</span>(hdpe, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), </span>
 <span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">ldpe =</span> <span class="fu">sum</span>(ldpe, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
 <span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">o =</span> <span class="fu">sum</span>(o, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
 <span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">pet =</span> <span class="fu">sum</span>(pet, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
 <span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">pp =</span> <span class="fu">sum</span>(pp, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
 <span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">ps =</span> <span class="fu">sum</span>(ps, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
 <span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">pvc =</span> <span class="fu">sum</span>(pvc, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Create GDP ranges</span></span>
-<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>plastics_country <span class="ot">&lt;-</span> Updated_Plastics <span class="sc">|&gt;</span></span>
-<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">gdp_range =</span> <span class="fu">case_when</span>(</span>
-<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>      gdp <span class="sc">&lt;</span> <span class="fl">5e10</span> <span class="sc">~</span> <span class="st">"Low"</span>,</span>
-<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>      gdp <span class="sc">&lt;</span> <span class="fl">2e11</span> <span class="sc">~</span> <span class="st">"Lower-Middle"</span>,</span>
-<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>      gdp <span class="sc">&lt;</span> <span class="fl">5e11</span> <span class="sc">~</span> <span class="st">"Middle"</span>,</span>
-<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>      gdp <span class="sc">&lt;</span> <span class="fl">1e12</span> <span class="sc">~</span> <span class="st">"Upper-Middle"</span>,</span>
-<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>      gdp <span class="sc">&gt;=</span> <span class="fl">1e12</span> <span class="sc">~</span> <span class="st">"High"</span></span>
-<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Create segmented + sorted bar graph</span></span>
-<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>plastics_country <span class="sc">|&gt;</span></span>
-<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">gdp_range =</span> <span class="fu">factor</span>(</span>
-<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a>    gdp_range,</span>
-<span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Lower-Middle"</span>, <span class="st">"Middle"</span>, <span class="st">"Upper-Middle"</span>, <span class="st">"High"</span>)</span>
-<span id="cb23-33"><a href="#cb23-33" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb23-34"><a href="#cb23-34" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb23-35"><a href="#cb23-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
-<span id="cb23-36"><a href="#cb23-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="fu">c</span>(hdpe, ldpe, o, pet, pp, ps, pvc),</span>
-<span id="cb23-37"><a href="#cb23-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">"plastic_type"</span>,</span>
-<span id="cb23-38"><a href="#cb23-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"plastic_amount"</span></span>
-<span id="cb23-39"><a href="#cb23-39" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb23-40"><a href="#cb23-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(gdp_range, plastic_type) <span class="sc">|&gt;</span></span>
-<span id="cb23-41"><a href="#cb23-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">avg_plastic =</span> <span class="fu">mean</span>(plastic_amount, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb23-42"><a href="#cb23-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> gdp_range, <span class="at">y =</span> avg_plastic, <span class="at">fill =</span> plastic_type)) <span class="sc">+</span></span>
-<span id="cb23-43"><a href="#cb23-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"fill"</span>) <span class="sc">+</span></span>
-<span id="cb23-44"><a href="#cb23-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb23-45"><a href="#cb23-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Proportion of Average Plastic Types by GDP Range"</span>,</span>
-<span id="cb23-46"><a href="#cb23-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"GDP Range"</span>,</span>
-<span id="cb23-47"><a href="#cb23-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Proportion"</span>,</span>
-<span id="cb23-48"><a href="#cb23-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"Plastic Type"</span></span>
-<span id="cb23-49"><a href="#cb23-49" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span>               </span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">wealth_group =</span> <span class="fu">factor</span>(</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>      <span class="fu">ntile</span>(gdp, <span class="dv">5</span>),</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>      <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"Low"</span>, <span class="st">"Lower-Middle"</span>, <span class="st">"Middle"</span>, <span class="st">"Upper-Middle"</span>, <span class="st">"High"</span>)</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Reshape + summarize for plotting</span></span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>plastics_country <span class="sc">|&gt;</span></span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(</span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">cols =</span> <span class="fu">c</span>(hdpe, ldpe, o, pet, pp, ps, pvc),</span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">names_to =</span> <span class="st">"plastic_type"</span>,      </span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">values_to =</span> <span class="st">"plastic_amount"</span>    </span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(wealth_group, plastic_type) <span class="sc">|&gt;</span></span>
+<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_plastic =</span> <span class="fu">mean</span>(plastic_amount, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb23-33"><a href="#cb23-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> wealth_group, <span class="at">y =</span> avg_plastic, <span class="at">fill =</span> plastic_type)) <span class="sc">+</span></span>
+<span id="cb23-34"><a href="#cb23-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"fill"</span>) <span class="sc">+</span>   </span>
+<span id="cb23-35"><a href="#cb23-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb23-36"><a href="#cb23-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Proportion of Average Plastic Types by Wealth Group"</span>,</span>
+<span id="cb23-37"><a href="#cb23-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Wealth Group"</span>,</span>
+<span id="cb23-38"><a href="#cb23-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Proportion"</span>,</span>
+<span id="cb23-39"><a href="#cb23-39" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"Plastic Type"</span></span>
+<span id="cb23-40"><a href="#cb23-40" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -543,7 +538,7 @@ The following object is masked from 'package:purrr':
 </div>
 </div>
 </div>
-<p>This graph shows that the composition of plastic types is relatively similar across GDP ranges. Other plastics (labeled ‘o’) make up the largest proportion in all groups except in the “Low” and “Lower-Middle” GDP range, who tend to have a higher share of PET usage. The “Middle” and “Higher” GDP ranges have a more balanced distribution across the different plastic types.</p>
+<p>This graph shows that the composition of plastic types is relatively similar across GDP ranges. Other plastics (labeled ‘o’) make up the largest proportion in all groups except in the “Low” and “Lower-Middle” GDP range, who tend to have a higher share of PET usage. The “Middle” and “Higher” GDP ranges have a more balanced distribution across the different plastic types than the other groups.</p>
 </section>
 </section>
 
