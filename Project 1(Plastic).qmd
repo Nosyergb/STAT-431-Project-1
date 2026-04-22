@@ -2,7 +2,7 @@
 title: "Project 1(Plastic)"
 author: "Tyler Kinney, Greyson Ballesteros"
 format: 
-  html
+  html:
     code-tools: true
     code-fold: show
     embed-resources: true
