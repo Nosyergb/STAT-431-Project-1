@@ -4,7 +4,7 @@ author: "Tyler Kinney, Greyson Ballesteros"
 format: 
   html:
     code-tools: true
-    code-fold: show
+    code-fold: true
     embed-resources: true
     theme: journal
     toc: true
