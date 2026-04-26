@@ -27,6 +27,7 @@ library(here)
 library(jsonlite)
 library(purrr)
 library(ggplot2)
+library(ggridges)
 ```
 
 ### Check-In 1
@@ -438,4 +439,18 @@ plastics_country |>
     y = "Proportion",
     fill = "Plastic Type"
   )
+```
+
+```{r}
+
+Updated_Plastics |>
+  mutate(
+    wealth_group = factor(
+      ntile(gdp, 5),
+      labels = c("Low", "Lower-Middle", "Middle", "Upper-Middle", "High")
+    )
+  ) |>
+  ggplot(aes(x = total_plastic, y = wealth_group, fill = wealth_group)) +
+  geom_density_ridges(alpha = 0.7) +
+  scale_fill_brewer(palette = "Set3")
 ```
