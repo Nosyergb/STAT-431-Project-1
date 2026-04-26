@@ -422,7 +422,7 @@ Updated_Plastics |>
 ```
 
 ```{r}
-#| #| fig-alt: "Segmented Bar Graph Displaying the Proportion of Average Plastic Types Used Divided by Wealth Groups in Different Countries from 2019-2020"
+#| fig-alt: "Segmented Bar Graph Displaying the Proportion of Average Plastic Types Used Divided by Wealth Groups in Different Countries from 2019-2020"
 #| fig-cap: "Figure 2. Proportion of Average Plastic Types by Wealth Group."
 
 plastics_country <- Updated_Plastics |>
@@ -469,7 +469,6 @@ plastics_country |>
 ```
 
 ```{r}
-
 # Research question: How does the distribution of plastic waste types change with the different income levels of countries?
 
 plastics_country <- Updated_Plastics |>
