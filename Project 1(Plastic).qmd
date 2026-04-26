@@ -16,7 +16,6 @@ execute:
   error: false
   warning: false
   message: false
-
 ---
 
 ```{r}
@@ -49,7 +48,7 @@ the columns in the data have been assigned certain classes like (double, charact
 # Research Questions
 
 1.  Has the types of plastics that are being used changed significantly from 2019 to 2020
-2.  How does the gap in total plastic consumption change between countries between 2019 and 2020 
+2.  How does the gap in total plastic consumption change between countries between 2019 and 2020
 
 # Supplemental Data Questions
 
@@ -61,7 +60,6 @@ the columns in the data have been assigned certain classes like (double, charact
 ![](Untitled-2026-04-06-1719.png)
 
 ![](Untitled-2026-04-06-1719(1).png)
-
 
 ### Check-In 2
 
@@ -167,7 +165,7 @@ plastic_wealth_summary <- function(year_input) {
 plastic_wealth_summary(2020)
 ```
 
-in 2020, the average amount of plastic produced per GDP for a country was 6.189 * 10^-8
+in 2020, the average amount of plastic produced per GDP for a country was 6.189 \* 10\^-8
 
 ```{r}
 #| label: summary 3 (modified, Iteration)
@@ -203,7 +201,6 @@ results
 ```
 
 the lowest average plastic per GDP belonged to the wealthiest countries in 2020, while the highest average plastic per GDP belonged to the least wealthy countries in 2020.
-
 
 ### Check-In 3
 
@@ -346,7 +343,9 @@ Updated_Plastics |>
   x = "Language",
   y = "Total Plastic Waste",
 )
+
 ```
+
 According to the graph, countries that include English or Filipino among their reported languages tend to show higher maximum levels of plastic waste from 2019-2020. Other common languages include French and Italian, while Romansh and Swiss German display much greater variability in plastic waste, as indicated by the wide spread of their boxplots.
 
 ```{r}
@@ -391,15 +390,41 @@ plastics_country |>
     y = "Proportion",
     fill = "Plastic Type"
   )
+
 ```
+
 This graph shows that the composition of plastic types is relatively similar across GDP ranges. Other plastics (labeled 'o') make up the largest proportion in all groups except in the "Low" and "Lower-Middle" GDP range, who tend to have a higher share of PET usage. The "Middle" and "Higher" GDP ranges have a more balanced distribution across the different plastic types than the other groups.
 
 ### Check-In 4
 
 ```{r}
-#| fig-alt: "Segmented Bar Graph Displaying the Proportion of Average Plastic Types Used Divided by Wealth Groups in Different Countries from 2019-2020"
+#| fig-alt: "Ridgeline Plot Displaying the Total Plastic Waste Divided by Wealth Groups in Different Countries from 2019-2020"
+#| fig-cap: "Figure 1. Distribution of Total Plastic Waste by Wealth Group."
 
-# Aggregate plastic data to country-year level
+Updated_Plastics |>
+  mutate(
+    wealth_group = factor(
+      ntile(gdp, 5),
+      labels = c("Low", "Lower-Middle", "Middle", "Upper-Middle", "High")
+    )
+  ) |>
+  ggplot(aes(x = total_plastic, y = wealth_group, fill = wealth_group)) +
+  geom_density_ridges(alpha = 0.7) +
+  scale_fill_brewer(palette = "Set3") +
+  labs(
+    title = "Distribution of Total Plastic Waste by Wealth Group",
+    x = "Total Plastic Waste",
+    y = "Wealth Group",
+    fill = "Wealth Group"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+#| #| fig-alt: "Segmented Bar Graph Displaying the Proportion of Average Plastic Types Used Divided by Wealth Groups in Different Countries from 2019-2020"
+#| fig-cap: "Figure 2. Proportion of Average Plastic Types by Wealth Group."
+
 plastics_country <- Updated_Plastics |>
   group_by(country, year, gdp) |>   
   summarize(
@@ -419,7 +444,6 @@ plastics_country <- Updated_Plastics |>
     )
   )
 
-# Reshape + summarize for plotting
 plastics_country |>
   pivot_longer(
     cols = c(hdpe, ldpe, o, pet, pp, ps, pvc),
@@ -433,24 +457,69 @@ plastics_country |>
   ) |>
   ggplot(aes(x = wealth_group, y = avg_plastic, fill = plastic_type)) +
   geom_col(position = "fill") +   
+  scale_fill_brewer(palette = "Set2") +
   labs(
     title = "Proportion of Average Plastic Types by Wealth Group",
     x = "Wealth Group",
     y = "Proportion",
     fill = "Plastic Type"
-  )
+  ) +
+  theme_minimal()
+
 ```
 
 ```{r}
 
-Updated_Plastics |>
+# Research question: How does the distribution of plastic waste types change with the different income levels of countries?
+
+plastics_country <- Updated_Plastics |>
+  group_by(country, year, gdp) |>   
+  summarize(
+    hdpe = sum(hdpe, na.rm = TRUE), 
+    ldpe = sum(ldpe, na.rm = TRUE),
+    o = sum(o, na.rm = TRUE),
+    pet = sum(pet, na.rm = TRUE),
+    pp = sum(pp, na.rm = TRUE),
+    ps = sum(ps, na.rm = TRUE),
+    pvc = sum(pvc, na.rm = TRUE),
+    .groups = "drop"               
+  ) |>
   mutate(
     wealth_group = factor(
       ntile(gdp, 5),
       labels = c("Low", "Lower-Middle", "Middle", "Upper-Middle", "High")
     )
+  )
+
+plastics_counts <- Updated_Plastics |>
+    mutate(
+    wealth_group = factor(
+      ntile(gdp, 5),
+      labels = c("Low", "Lower-Middle", "Middle", "Upper-Middle", "High")
+    ) 
   ) |>
-  ggplot(aes(x = total_plastic, y = wealth_group, fill = wealth_group)) +
-  geom_density_ridges(alpha = 0.7) +
-  scale_fill_brewer(palette = "Set3")
+  pivot_longer(
+    cols = c(hdpe, ldpe, o, pet, pp, ps, pvc),
+    names_to = "plastic_type",
+    values_to = "plastic_amount"
+  ) |>
+  group_by(wealth_group, plastic_type) |>
+  summarize(
+    total_plastic = sum(plastic_amount, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  pivot_wider(
+    names_from = plastic_type,
+    values_from = total_plastic
+  )
+
+plastics_matrix <- as.matrix(plastics_counts[, -1])
+rownames(plastics_matrix) <- plastics_counts$wealth_group
+
+chisq.test(plastics_matrix)
+
 ```
+
+# Chi-Squared Test of Plastic Type by Wealth Group
+
+A Pearson's chi-squared test of independence showed that the relationship between plastic type and wealth group is statistically significant (X\^2(24) = 142405, p-value \< 0.05), indicating that the distribution of plastics types does differ between wealth groups.
