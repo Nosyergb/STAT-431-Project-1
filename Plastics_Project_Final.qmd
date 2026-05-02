@@ -1,5 +1,66 @@
 ---
-title: "Plastics_Project_Final"
-format: html
+title: "Project 1(Plastic)"
+author: "Tyler Kinney, Greyson Ballesteros"
+format: 
+  html:
+    code-tools: true
+    code-fold: true
+    embed-resources: true
+    theme: journal
+    toc: true
+    toc-depth: 3
+    toc-title: "Contents"
+editor: source
+execute:
+  echo: true
+  error: false
+  warning: false
+  message: false
 ---
+
+```{r}
+#| label: packages-setup
+library(tidyverse)
+library(glue)
+library(here)
+library(jsonlite)
+library(purrr)
+library(ggplot2)
+library(ggridges)
+```
+
+### Research Question 1
+
+RQ: Has the types of plastics that are being used changed significantly from 2019 to 2020?
+
+## Data Context
+
+```{r}
+#| label: load_data
+tuesdata <- tidytuesdayR::tt_load('2021-01-26')
+plastics <- tuesdata$plastics
+```
+
+
+
+## Summary Tables
+
+
+## Data Visualizations
+
+
+
+
+### Research Question 2
+
+
+
+
+## Data Context
+
+
+## Summary Tables
+
+
+## Data Visualizations
 
