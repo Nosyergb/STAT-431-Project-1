@@ -265,7 +265,7 @@ collect_api_data <- function(code) {
 
 # iterate through unique codes
 
-Languages <- map(codes, collect_api_data)
+?pLanguages <- map(codes, collect_api_data)
 
 # given a list of data frames formatted weirdly, so pivoting
 
@@ -519,6 +519,7 @@ chisq.test(plastics_matrix)
 
 ```
 
+filter(str_detect(title, 'Toy Story' | str_detect(title, 'Cars')))
 # Chi-Squared Test of Plastic Type by Wealth Group
 
 A Pearson's chi-squared test of independence showed that the relationship between plastic type and wealth group is statistically significant (X\^2(24) = 142405, p-value \< 0.05), indicating that the distribution of plastics types does differ between wealth groups.
