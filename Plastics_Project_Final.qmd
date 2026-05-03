@@ -27,6 +27,9 @@ library(jsonlite)
 library(purrr)
 library(ggplot2)
 library(ggridges)
+library(gt)
+library(scales)
+library(ggtext)
 ```
 
 ### Research Question 1
@@ -43,11 +46,174 @@ plastics <- tuesdata$plastics
 
 ## Summary Tables
 
+<<<<<<< HEAD
 ## Data Visualizations
 
 ### Research Question 2
 
 RQ: How does the distribution of plastic waste types change with the different income levels of countries?
+=======
+```{r}
+#| label: Summary 1 (non-modified, iteration, custom function)
+
+plastic_types <- c("hdpe", "ldpe", "pet", "pp", "ps", "pvc", "o")
+
+Prop_change <- function(type) {
+  plastics |>
+    filter(parent_company != "Grand Total") |>
+    group_by(year) |>
+    summarize(
+      total_type = sum(across(type), na.rm = TRUE),
+      total_all = sum(grand_total, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    mutate(prop = total_type / total_all) |>
+    arrange(year) |>
+    summarize(
+      plastic_type = type,
+      prop_2019 = prop[year == 2019],
+      prop_2020 = prop[year == 2020],
+      change = prop_2020 - prop_2019
+    )
+}
+
+map_dfr(plastic_types, Prop_change) |>
+  arrange(change) |>
+  gt() |>
+  tab_header(title = md("**Proportions of Each Plastic Type**"),
+             subtitle = "and Changes in Those proportions (2020-2019)") |>
+  fmt_percent(columns = c(`change`, prop_2019, prop_2020),
+              decimals = 2) |>
+  cols_label(plastic_type = "Type",
+             `prop_2019` = "2019",
+             `prop_2020` = "2020",
+             change = "Change") |>
+  tab_options(heading.background.color = "#EB6864",
+              column_labels.background.color = "lightgrey",
+              row.striping.background_color = "lightgrey",
+              row.striping.include_table_body = TRUE) |>
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_column_labels(everything())) |>
+  tab_style(style = cell_borders(sides = "bottom",
+            color = "#333333",
+            weight = px(2)),
+            locations = list(cells_column_labels(), cells_title(groups = "subtitle"))) |>
+  data_color(columns = change,
+             colors = col_numeric(
+             palette = c("lightgreen", "white", "#D95C5C"),
+             domain = NULL))
+  
+```
+
+
+```{r}
+#| label: Summary 2 (non-modified)
+
+plastics |>
+  filter(parent_company != "Grand Total") |>
+  pivot_longer(cols = c(hdpe, ldpe, o, pet, pp, ps, pvc, grand_total),
+               names_to = "plastic_type",
+               values_to = "amount") |>
+  group_by(plastic_type, year) |>
+  summarize(total = sum(amount, na.rm = TRUE), .groups = "drop") |>
+  arrange(plastic_type, year) |>
+  group_by(plastic_type) |>
+  mutate(`2019_2020_YoY` = (total - lag(total)) / lag(total)) |>
+  filter(!is.na(`2019_2020_YoY`)) |>
+  select(-total, -year) |>
+  arrange(`2019_2020_YoY`) |>
+  ungroup() |>
+  gt() |>
+  tab_header(title = md("**Year Over Year Increase in Types of Plastic Use**"),
+             subtitle = "Calculated from 2020") |>
+  fmt_percent(columns = `2019_2020_YoY`,
+              decimals = 2) |>
+  cols_label(plastic_type = "Type",
+             `2019_2020_YoY` = "YoY Increase") |>
+  tab_options(heading.background.color = "#EB6864",
+              column_labels.background.color = "lightgrey",
+              row.striping.background_color = "lightgrey",
+              row.striping.include_table_body = TRUE) |>
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_column_labels(everything())) |>
+  tab_style(style = cell_borders(sides = "bottom",
+            color = "#333333",
+            weight = px(2)),
+            locations = list(cells_column_labels(), cells_title(groups = "subtitle"))) |>
+  data_color(columns = `2019_2020_YoY`,
+             colors = col_numeric(
+             palette = c("lightgreen", "white", "#D95C5C"),
+             domain = NULL))
+  
+
+```
+
+
+## Data Visualizations
+
+```{r}
+#| label: Visual 1
+
+plastics |>
+  pivot_longer(cols = c(hdpe, ldpe, o, pet, pp, ps, pvc),
+               names_to = "plastic_type",
+               values_to = "plastic_amount") |>
+  filter(parent_company != "Grand Total",
+         !is.na(plastic_amount)) |>
+  group_by(year, plastic_type) |>
+  summarize(total = sum(plastic_amount, na.rm = TRUE),
+            .groups = "drop") |>
+  ggplot(aes(x = factor(year), y = total, fill = plastic_type)) +
+  geom_col(position = "fill") +
+  scale_y_continuous(labels = label_percent()) +
+  labs(title = "Proportion of Plastic Types by Year",
+       x = "Year",
+       y = "Proportion",
+       fill = "Plastic Type") +
+  theme_light() +
+  scale_fill_brewer(palette = "Set2")
+```
+
+```{r}
+#| label: Visual 2
+
+plastics |>
+  pivot_longer(cols = hdpe:pvc,
+               names_to = "type",
+               values_to = "count") |>
+  filter(parent_company != "Grand Total",
+         !is.na(count)) |>
+  group_by(year, type) |>
+  summarize(total = sum(count, na.rm = TRUE), .groups = "drop") |>
+  group_by(year) |>
+  mutate(prop = total / sum(total)) |>
+  ungroup() |>
+  select(year, type, prop) |>
+  pivot_wider(names_from = year,
+              values_from = prop,
+              names_prefix = "year_") |>
+  mutate(change = year_2020 - year_2019,
+         type = reorder(type, change)) |>
+  ggplot() +
+  geom_segment(aes(x = year_2019, xend = year_2020,
+               y = type, yend = type),
+               color = "black",
+               linewidth = 1) +
+  geom_point(aes(x = year_2019, y = type), color = "#4C78A8", size = 3) +
+  geom_point(aes(x = year_2020, y = type), color = "#E45756", size = 3) +
+  scale_x_continuous(labels = scales::label_percent()) +
+  labs(title = "Change in Plastic Type Composition",,
+       subtitle = "(<span style='color:#4C78A8;'>2019</span> – <span style='color:#E45756;'>2020</span>)",
+       x = "Proportion of total plastic",
+       y = "Plastic type") +
+  theme_light() +
+  theme(plot.subtitle = element_markdown())
+
+```
+
+### Research Question 2
+
+>>>>>>> ffff4491422c6800c31445163bfeb64cf85adbc4
 
 ## Data Context
 
@@ -299,6 +465,7 @@ chisq.test(plastics_matrix)
 
 ```
 
+<<<<<<< HEAD
 ## Data Visualizations
 
 ```{r}
@@ -371,3 +538,6 @@ plastics_country |>
   theme_minimal()
 
 ```
+=======
+## Data Visualizations
+>>>>>>> ffff4491422c6800c31445163bfeb64cf85adbc4
