@@ -32,11 +32,11 @@ library(scales)
 library(ggtext)
 ```
 
-### Research Question 1
+## Research Question 1
 
 RQ: Has the types of plastics that are being used changed significantly from 2019 to 2020?
 
-## Data Context
+### Data Context
 
 ```{r}
 #| label: load_data
@@ -44,7 +44,7 @@ tuesdata <- tidytuesdayR::tt_load('2021-01-26')
 plastics <- tuesdata$plastics
 ```
 
-## Summary Tables
+### Summary Tables
 
 ```{r}
 #| label: Summary 1 (non-modified, iteration, custom function)
@@ -100,7 +100,6 @@ map_dfr(plastic_types, Prop_change) |>
   
 ```
 
-
 ```{r}
 #| label: Summary 2 (non-modified)
 #| fig-alt: "Table displaying year over year increase in plastic type usage in 2019 and 2020"
@@ -145,8 +144,7 @@ plastics |>
 
 ```
 
-
-## Data Visualizations
+### Data Visualizations
 
 ```{r}
 #| label: Visual 1
@@ -210,12 +208,12 @@ plastics |>
   theme(plot.subtitle = element_markdown())
 ```
 
-### Research Question 2
+## Research Question 2
 
-RQ: How does the distribution of plastic waste types change with the different income levels of countries?
-  
-## Data Context
-  
+RQ: How does the distribution of plastic waste types change with the different income levels of countries? 
+
+### Data Context
+
 ```{r}
 # reading in csv, found here https://github.com/lukes/ISO-3166-Countries-with-Regional-Codes/blob/master/all/all.csv
 GDP_2019_2020 <- read.csv(here("GDP_data.csv"), skip = 4) |>
@@ -362,10 +360,12 @@ Updated_Plastics <- plastics_w_code |>
 
 ```
 
-## Summary Tables
+### Summary Tables
 
 ```{r}
-#| label: summary 3 (modified, Custom Function, Iteration)
+#| label: Summary 3 (modified, Custom Function, Iteration)
+#| fig-alt: "Table displaying the differences in proportions of plastic waste based on income class organized from 2019 to 2020."
+#| fig-cap: "Figure 5: Proportion of Plastic Waste per Income"
 
 years <- c(2019, 2020)
 
@@ -415,56 +415,11 @@ table_data |>
              domain = NULL))
 
 ```
-```{r}
-#| label: summary 4 (modified)
-
-plastic_type_distribution <- Updated_Plastics |>
-  pivot_longer(
-    cols = c(hdpe, ldpe, o, pet, pp, ps, pvc),
-    names_to = "plastic_type",
-    values_to = "plastic_share"
-  ) |>
-  mutate(
-    plastic_amount = total_plastic * plastic_share
-  ) |>
-  group_by(wealth_group, plastic_type) |>
-  summarise(
-    total = sum(plastic_amount, na.rm = TRUE),
-    .groups = "drop"
-  ) |>
-  group_by(wealth_group) |>
-  mutate(
-    proportion = total / sum(total)
-  ) |>
-  ungroup() |>
-  arrange(wealth_group, desc(proportion))
-
-plastic_type_distribution |>
-  gt(groupname_col = "wealth_group") |>
-  fmt_percent(columns = proportion) |>
-  fmt_number(columns = total, decimals = 0) |>
-  cols_label(plastic_type = "Plastic Type", total = "Total Plastic", proportion = "Proportion") |>
-  tab_header(title = md("**Distribution of Plastic Waste Types by Income Level**"), subtitle = "Composition within each wealth group") |>
-  tab_options(row_group.background.color = "#EB6964",
-              heading.background.color = "#EB6964",
-              column_labels.background.color = "lightgrey",
-              row.striping.background_color = "lightgrey",
-              row.striping.include_table_body = TRUE) |>
-  tab_style(style = cell_text(weight = "bold"),
-            locations = cells_column_labels(everything())) |>
-  tab_style(style = cell_borders(sides = "bottom",
-            color = "#333333",
-            weight = px(2)),
-            locations = list(cells_column_labels(), cells_title(groups = "subtitle"))) |>
-  data_color(columns = proportion,
-             colors = col_numeric(
-             palette = c("#D95C5C", "white", "lightgreen"),
-             domain = NULL))
-
-```
 
 ```{r}
-# Statistical Model
+#| label: Statistical Model for Data in Summary 3/Figure 5
+#| fig-alt: "Table displaying the differences in proportions of plastic waste based on income class organized from 2019 to 2020."
+#| fig-cap: "Proportion of Plastic Waste per Income"
 
 plastics_country <- Updated_Plastics |>
   group_by(country, year, gdp) |>   
@@ -514,11 +469,62 @@ chisq.test(plastics_matrix)
 
 ```
 
-## Data Visualizations
+```{r}
+#| label: Summary 4 (modified)
+#| fig-alt: "Table displaying the differences in proportions of each plastic waste type based on income class from 2019 to 2020."
+#| fig-cap: "Figure 6: Distribution of Plastic Waste Types by Income Level"
+
+plastic_type_distribution <- Updated_Plastics |>
+  pivot_longer(
+    cols = c(hdpe, ldpe, o, pet, pp, ps, pvc),
+    names_to = "plastic_type",
+    values_to = "plastic_share"
+  ) |>
+  mutate(
+    plastic_amount = total_plastic * plastic_share
+  ) |>
+  group_by(wealth_group, plastic_type) |>
+  summarise(
+    total = sum(plastic_amount, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  group_by(wealth_group) |>
+  mutate(
+    proportion = total / sum(total)
+  ) |>
+  ungroup() |>
+  arrange(wealth_group, desc(proportion))
+
+plastic_type_distribution |>
+  gt(groupname_col = "wealth_group") |>
+  fmt_percent(columns = proportion) |>
+  fmt_number(columns = total, decimals = 0) |>
+  cols_label(plastic_type = "Plastic Type", total = "Total Plastic", proportion = "Proportion") |>
+  tab_header(title = md("**Distribution of Plastic Waste Types by Income Level**"), subtitle = "Composition within each wealth group") |>
+  tab_options(row_group.background.color = "#EB6964",
+              heading.background.color = "#EB6964",
+              column_labels.background.color = "lightgrey",
+              row.striping.background_color = "lightgrey",
+              row.striping.include_table_body = TRUE) |>
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_column_labels(everything())) |>
+  tab_style(style = cell_borders(sides = "bottom",
+            color = "#333333",
+            weight = px(2)),
+            locations = list(cells_column_labels(), cells_title(groups = "subtitle"))) |>
+  data_color(columns = proportion,
+             colors = col_numeric(
+             palette = c("#D95C5C", "white", "lightgreen"),
+             domain = NULL))
+
+```
+
+### Data Visualizations
 
 ```{r}
-#| fig-alt: "Ridgeline Plot Displaying the Total Plastic Waste Divided by Wealth Groups in Different Countries from 2019-2020"
-#| fig-cap: "Figure 1. Distribution of Total Plastic Waste by Wealth Group."
+#| Visual 3
+#| fig-alt: "Ridgeline plot displaying the total plastic waste divided by wealth groups in different countries from 2019 to 2020"
+#| fig-cap: "Figure 7: Distribution of Total Plastic Waste by Wealth Group"
 
 Updated_Plastics |>
   mutate(
@@ -541,8 +547,9 @@ Updated_Plastics |>
 ```
 
 ```{r}
-#| fig-alt: "Segmented Bar Graph Displaying the Proportion of Average Plastic Types Used Divided by Wealth Groups in Different Countries from 2019-2020"
-#| fig-cap: "Figure 2. Proportion of Average Plastic Types by Wealth Group."
+#| Visual 4
+#| fig-alt: "Segmented bar graph displaying the proportion of average plastic types used divided by wealth groups in different countries from 2019 to 2020"
+#| fig-cap: "Figure 8: Proportion of Average Plastic Types by Wealth Group"
 
 plastics_country <- Updated_Plastics |>
   group_by(country, year, gdp) |>   
