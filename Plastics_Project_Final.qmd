@@ -44,12 +44,14 @@ tuesdata <- tidytuesdayR::tt_load('2021-01-26')
 plastics <- tuesdata$plastics
 ```
 
+The data comes from Break Free from Plastic (BFFP) courtesy of Sarah Sauve. The observational unit is one cleaning project. The data contains variables relating to types of plastic, where the plastic comes from, and country. The columns in the data have been assigned certain classes like (double, character). They also cleaned the names of the columns using the janitor package. They also took two data sets from 2019 and 2020 and bound the rows together. The audit was completed in October of 2020, implying that the data was collected during that audit. The data was collected as part of a bigger project to understand the sources of plastic in different cities.
+
 ### Summary Tables
 
 ```{r}
 #| label: Summary 1 (non-modified, iteration, custom function)
 #| fig-alt: "Table displaying proportions of plastic type compared to the total in 2019 and 2020 and the change in those proportions between the years"
-#| fig-cap: "Figure 1: Proportions of Each Plastic Type"
+#| fig-cap: "Figure 1 shows the changes in proportions of each plastic type used from 2019 to 2020, with pp showing about a 14% increase and other showing about a 23% decrease."
 
 plastic_types <- c("hdpe", "ldpe", "pet", "pp", "ps", "pvc", "o")
 
@@ -102,8 +104,8 @@ map_dfr(plastic_types, Prop_change) |>
 
 ```{r}
 #| label: Summary 2 (non-modified)
-#| fig-alt: "Table displaying year over year increase in plastic type usage in 2019 and 2020"
-#| fig-cap: "Figure 2: Plastic Type Year Over Year increase"
+#| fig-alt: "Table displaying year over year increase in plastic type usage in 2019 and 2020."
+#| fig-cap: "Figure 2 shows how plastic types increased from 2019 to 2020, with pvc showing the most increase with about 666% and other showing the most decrease with about 42%."
 
 plastics |>
   filter(parent_company != "Grand Total") |>
@@ -140,7 +142,6 @@ plastics |>
              colors = col_numeric(
              palette = c("lightgreen", "white", "#D95C5C"),
              domain = NULL))
-  
 
 ```
 
@@ -149,7 +150,9 @@ plastics |>
 ```{r}
 #| label: Visual 1
 #| fig-alt: "Segmented bargraph displaying the distribution of plastic types in 2019 and 2020"
-#| fig-cap: "Figure 3: Plastic Type Distribution by Year"
+#| fig-cap: "Figure 3 shows the proportion of plastic types used per year from 2019 to 2020, with the graph showing that pp increased the most in usage and other decreased the most in usage."
+
+journal_colors <- c("#FFFFFF", "#F8D6D6", "#F1ADAD", "#EA8585", "#E35C5C", "#DE4C4C", "#D95C5C")
 
 plastics |>
   pivot_longer(cols = c(hdpe, ldpe, o, pet, pp, ps, pvc),
@@ -168,13 +171,13 @@ plastics |>
        y = "Proportion",
        fill = "Plastic Type") +
   theme_light() +
-  scale_fill_brewer(palette = "Set2")
+  scale_fill_manual(values = journal_colors)
 ```
 
 ```{r}
 #| label: Visual 2
 #| fig-alt: "Slope graph showing changes in Proportions of each plastic type used from 2019 to 2020"
-#| fig-cap: "Figure 4: Changes in Proportions 2019 to 2020"
+#| fig-cap: "Figure 4 shows the changes in proportion of plastic type usage per year from 2019 to 2020, with pp increasing the most and other decreasing the most."
 
 plastics |>
   pivot_longer(cols = hdpe:pvc,
@@ -195,13 +198,13 @@ plastics |>
   ggplot() +
   geom_segment(aes(x = year_2019, xend = year_2020,
                y = type, yend = type),
-               color = "black",
+               color = "#333333",
                linewidth = 1) +
-  geom_point(aes(x = year_2019, y = type), color = "#4C78A8", size = 3) +
-  geom_point(aes(x = year_2020, y = type), color = "#E45756", size = 3) +
+  geom_point(aes(x = year_2019, y = type), color = "grey", size = 3) +
+  geom_point(aes(x = year_2020, y = type), color = "#EB6864", size = 3) +
   scale_x_continuous(labels = scales::label_percent()) +
-  labs(title = "Change in Plastic Type Composition",,
-       subtitle = "(<span style='color:#4C78A8;'>2019</span> – <span style='color:#E45756;'>2020</span>)",
+  labs(title = "Change in Plastic Type Composition",
+       subtitle = "(<span style='color:grey;'>2019</span> – <span style='color:#E45756;'>2020</span>)",
        x = "Proportion of total plastic",
        y = "Plastic type") +
   theme_light() +
@@ -210,7 +213,11 @@ plastics |>
 
 ## Research Question 2
 
+<<<<<<< HEAD
 RQ: How does the distribution of plastic waste types change with the different income levels of countries?
+=======
+RQ: How does the distribution of plastic waste change with the different income levels of countries?
+>>>>>>> 67190c81f953213ffaf08a17fd3a169fb2a66cf8
 
 ### Data Context
 
@@ -360,12 +367,20 @@ Updated_Plastics <- plastics_w_code |>
 
 ```
 
+In order to assemble Updated_Plastics, we used the following data:
+
+The GDP data is the country official statistics from the National Statistical Organizations and/or Central Banks. The observational unit is a country. The data has been collected since 1960 all the way up to 2024. It was obtained via the National Accounts data files, the Organisation for Economic Co-operation and Development (OECD), staff estimates, and the World Bank (WB). The data was collected for many reasons, but mainly for understanding and managing a country's economy.
+
+The API data was collected and published by the REST Countries API project from official sources such as the United Nations, World Bank, and national statistical agencies. The observational unit is a country. It doesn't represent a single collection date. The data was collected indirectly by various sources via national censuses, surveys, and administrative records. The data was collected to provide a general country-level information about demographics and economies.
+
+The country code data was collected by Luke Duncalfe. The observational unit is one country. The last revision made on the UN Statistical data was on June 19, 2024, from a document last revised on June 6, 2024. It was merged from both Wikipedia and the UN M49 Standard country or area codes for statistical data use. We chose to collect this data in order to make the links for the API we were using.
+
 ### Summary Tables
 
 ```{r}
 #| label: Summary 3 (modified, Custom Function, Iteration)
 #| fig-alt: "Table displaying the differences in proportions of plastic waste based on income class organized from 2019 to 2020."
-#| fig-cap: "Figure 5: Proportion of Plastic Waste per Income"
+#| fig-cap: "Figure 5 shows the proportion of plastic waste expulsion per country's income class from 2019 to 2020, with the lower-middle and middle classes using the most plastic waste and the low class using the least plastic waste."
 
 years <- c(2019, 2020)
 
@@ -419,7 +434,7 @@ table_data |>
 ```{r}
 #| label: Statistical Model for Data in Summary 3/Figure 5
 #| fig-alt: "Table displaying the differences in proportions of plastic waste based on income class organized from 2019 to 2020."
-#| fig-cap: "Proportion of Plastic Waste per Income"
+#| fig-cap: "The chi-squared model we created shows how there was significant evidence of differences present in proportions of plastic waste based on income class from 2019 to 2020."
 
 plastics_country <- Updated_Plastics |>
   group_by(country, year, gdp) |>   
@@ -432,12 +447,6 @@ plastics_country <- Updated_Plastics |>
     ps = sum(ps, na.rm = TRUE),
     pvc = sum(pvc, na.rm = TRUE),
     .groups = "drop"               
-  ) |>
-  mutate(
-    wealth_group = factor(
-      ntile(gdp, 5),
-      labels = c("Low", "Lower-Middle", "Middle", "Upper-Middle", "High")
-    )
   )
 
 plastics_counts <- Updated_Plastics |>
@@ -465,14 +474,49 @@ plastics_counts <- Updated_Plastics |>
 plastics_matrix <- as.matrix(plastics_counts[, -1])
 rownames(plastics_matrix) <- plastics_counts$wealth_group
 
-chisq.test(plastics_matrix)
+chisq <- chisq.test(plastics_matrix)
 
+tibble(
+  statistic = chisq$statistic,
+  parameter = chisq$parameter,
+  p.value = chisq$p.value,
+  method = chisq$method) |>
+  mutate(p.value = if(p.value < 0.001){
+    "< 0.001"
+  }
+  else{
+    p.value
+  }) |>
+  select(method, parameter, statistic, p.value) |>
+  gt() |>
+  fmt_number(
+    columns = c(statistic, parameter),
+    decimals = 2
+  ) |>
+  cols_label(
+    statistic = "Chi-square statistic",
+    parameter = "Degrees of freedom",
+    p.value = "p-value",
+    method = "Test"
+  ) |>
+  tab_header(
+    title = md("**Chi-square Test of Plastic Waste Type by Income Group**"),
+    subtitle = "Testing whether plastic waste type distribution differs across income levels"
+  ) |>
+  tab_options(heading.background.color = "#EB6864",
+              column_labels.background.color = "lightgrey") |>
+  tab_style(style = cell_borders(sides = "bottom",
+            color = "#333333",
+            weight = px(2)),
+            locations = list(cells_column_labels(), cells_title(groups = "subtitle")))
+  
 ```
+A chi-square test of independence was conducted to examine whether the distribution of plastic waste types differs across income groups. The results were statistically significant (χ²(24) = 126,217.89, p-value < 0.001), indicating that the distribution of plastic waste types differs across income groups.
 
 ```{r}
 #| label: Summary 4 (modified)
 #| fig-alt: "Table displaying the differences in proportions of each plastic waste type based on income class from 2019 to 2020."
-#| fig-cap: "Figure 6: Distribution of Plastic Waste Types by Income Level"
+#| fig-cap: "Figure 6 shows the distribution of proportions of plastic waste types across different income levels from 2019 to 2020, with other being used the most by the middle class and pvc being used the least by the low class."
 
 plastic_type_distribution <- Updated_Plastics |>
   pivot_longer(
@@ -522,9 +566,11 @@ plastic_type_distribution |>
 ### Data Visualizations
 
 ```{r}
-#| Visual 3
+#| label: Visual 3
 #| fig-alt: "Ridgeline plot displaying the total plastic waste divided by wealth groups in different countries from 2019 to 2020"
-#| fig-cap: "Figure 7: Distribution of Total Plastic Waste by Wealth Group"
+#| fig-cap: "Figure 7 shows how the total plastic waste was divided by income class in different countries from 2019 to 2020, with the middle class making the most and the low and high classes making the least."
+
+journal_colors <- c("#FFFFFF", "#F8D6D6", "#F1ADAD", "#EA8585", "#E35C5C", "#DE4C4C", "#D95C5C")
 
 Updated_Plastics |>
   mutate(
@@ -535,7 +581,7 @@ Updated_Plastics |>
   ) |>
   ggplot(aes(x = total_plastic, y = wealth_group, fill = wealth_group)) +
   geom_density_ridges(alpha = 0.7) +
-  scale_fill_brewer(palette = "Set3") +
+  scale_fill_manual(values = journal_colors) +
   labs(
     title = "Distribution of Total Plastic Waste by Wealth Group",
     x = "Total Plastic Waste",
@@ -547,9 +593,9 @@ Updated_Plastics |>
 ```
 
 ```{r}
-#| Visual 4
-#| fig-alt: "Segmented bar graph displaying the proportion of average plastic types used divided by wealth groups in different countries from 2019 to 2020"
-#| fig-cap: "Figure 8: Proportion of Average Plastic Types by Wealth Group"
+#| label: Visual 4
+#| fig-alt: "Segmented bar graph displaying the proportion of average plastic types divided by wealth groups in different countries from 2019 to 2020"
+#| fig-cap: "Figure 8 shows the proportion of average plastic types used by different income levels from 2019 to 2020. Lower-middle uses a lot of pet, middle uses a lot of pp, and upper-middle uses a lot of other plastics."
 
 plastics_country <- Updated_Plastics |>
   group_by(country, year, gdp) |>   
@@ -570,6 +616,8 @@ plastics_country <- Updated_Plastics |>
     )
   )
 
+journal_colors <- c("#FFFFFF", "#F8D6D6", "#F1ADAD", "#EA8585", "#E35C5C", "#DE4C4C", "#D95C5C")
+
 plastics_country |>
   pivot_longer(
     cols = c(hdpe, ldpe, o, pet, pp, ps, pvc),
@@ -583,7 +631,7 @@ plastics_country |>
   ) |>
   ggplot(aes(x = wealth_group, y = avg_plastic, fill = plastic_type)) +
   geom_col(position = "fill") +   
-  scale_fill_brewer(palette = "Set2") +
+  scale_fill_manual(values = journal_colors) +
   labs(
     title = "Proportion of Average Plastic Types by Wealth Group",
     x = "Wealth Group",
