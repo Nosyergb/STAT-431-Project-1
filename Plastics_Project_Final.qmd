@@ -210,7 +210,7 @@ plastics |>
 
 ## Research Question 2
 
-RQ: How does the distribution of plastic waste types change with the different income levels of countries? 
+RQ: How does the distribution of plastic waste change with the different income levels of countries?
 
 ### Data Context
 
