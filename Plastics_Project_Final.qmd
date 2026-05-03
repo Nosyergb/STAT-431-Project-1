@@ -162,6 +162,7 @@ languages_df |>
 # join all data (including GDP data from Check-in 2), and separating languages (this is our "meta" dataset)
 
 Updated_Plastics <- plastics_w_code |>
+  filter(parent_company != "Grand Total") |>
   inner_join(languages_df, by = 'country.code') |>
   inner_join(combined_data, by = c('country', 'year')) |>
   separate_wider_delim(cols = all_languages,
@@ -174,62 +175,7 @@ Updated_Plastics <- plastics_w_code |>
 ## Summary Tables
 
 ```{r}
-#| label: Summary 3 (modified, Function)
-
-# On average, how much plastic do countries produce per unit of GDP?
-
-# load gdp data, from worldbank.org
-# https://data.worldbank.org/indicator/NY.GDP.MKTP.CD?most_recent_year_desc=false
-# data was pivoted to create a year variable
-# cleaning GDP data to match plastics data
-GDP_2019_2020 <- read.csv(here("GDP_data.csv"), skip = 4) |>
-  select(Country.Name, X2019, X2020) |>
-  rename(`2019` = X2019, `2020` = X2020) |>
-  pivot_longer(
-    cols = c(`2019`, `2020`),
-    names_to = "year",
-    values_to = "gdp") |>
-  mutate(year = as.numeric(year)) |>
-  rename(country = Country.Name) |>
-  mutate(
-    country = recode(
-      country,
-      "Cote d'Ivoire" = "Cote D_ivoire",
-      "Ecuador" = "ECUADOR",
-      "Hong Kong SAR, China" = "Hong Kong",
-      "Korea, Rep." = "Korea",
-      "Nigeria" = "NIGERIA",
-      "Turkiye" = "Turkey",
-      "United Kingdom" = "United Kingdom of Great Britain & Northern Ireland",
-      "United States" = "United States of America",
-      "Viet Nam" = "Vietnam"
-    )
-  )
-
-# Summarizes total plastic use by country and year, excluding non-country entries.
-plastic_summary <- plastics |>
-  filter(country != "EMPTY") |>
-  group_by(country, year) |>
-  summarize(total_plastic = sum(grand_total, na.rm = TRUE), .groups = "drop")
-
-# combine the data
-combined_data <- plastic_summary |>
-  inner_join(GDP_2019_2020, by = c("country", "year"))
-
-# summary
-plastic_wealth_summary <- function(year_input) {
-  combined_data |>
-    filter(year == year_input) |>
-    mutate(plastic_per_gdp = total_plastic / gdp) |>
-    summarize(year = year_input,
-              avg_plastic_per_gdp = mean(plastic_per_gdp, na.rm = TRUE))
-}
-
-plastic_wealth_summary(2020)
-```
-
-```{r}
-#| label: summary 3 (modified, Iteration)
+#| label: summary 3 (modified, Custom Function, Iteration)
 
 years <- c(2019, 2020)
 
@@ -237,31 +183,69 @@ Updated_Plastics <- Updated_Plastics |>
   mutate(wealth_group = factor(ntile(gdp, 5), labels = c("Low", "Lower-Middle", "Middle", "Upper-Middle", "High")),
          plastic_per_gdp = total_plastic / gdp)
 
-plastic_proportion_by_year <- function(data) {
-  data |>
-    group_by(year, wealth_group) |>
+plastic_proportion_one_year <- function(year_input) {
+  Updated_Plastics |>
+    filter(year == year_input) |>
+    group_by(wealth_group) |>
     summarise(
       total_plastic = sum(total_plastic, na.rm = TRUE),
       .groups = "drop"
     ) |>
-    group_by(year) |>
     mutate(
       global_total = sum(total_plastic, na.rm = TRUE),
-      proportion = total_plastic / global_total
+      proportion = total_plastic / global_total,
+      year = year_input
     ) |>
-    ungroup() |>
-    arrange(year, wealth_group)
+    arrange(wealth_group)
 }
 
-table_data <- plastic_proportion_by_year(Updated_Plastics)
+table_data <- Updated_Plastics |>
+  distinct(year) |>
+  pull(year) |>
+  map_dfr(plastic_proportion_one_year)
 
 table_data |> group_by(year) |>
   gt() |>
   fmt_percent(columns = proportion) |>
+  fmt_number(columns = total_plastic, decimals = 0) |>
+   fmt_number(columns = global_total, decimals = 0) |>
   tab_header(title = md("**Proportion of Plastic Waste per Income**"), subtitle = "By Year") |>
   cols_label(wealth_group = "Wealth Group", total_plastic = "Total Plastic", global_total = "Global Total", proportion = "Proportion") |>
   tab_options(row_group.background.color = "#EB6964")
                
+```
+```{r}
+#| label: summary 4 (modified)
+
+plastic_type_distribution <- Updated_Plastics |>
+  pivot_longer(
+    cols = c(hdpe, ldpe, o, pet, pp, ps, pvc),
+    names_to = "plastic_type",
+    values_to = "plastic_share"
+  ) |>
+  mutate(
+    plastic_amount = total_plastic * plastic_share
+  ) |>
+  group_by(wealth_group, plastic_type) |>
+  summarise(
+    total = sum(plastic_amount, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  group_by(wealth_group) |>
+  mutate(
+    proportion = total / sum(total)
+  ) |>
+  ungroup() |>
+  arrange(wealth_group, desc(proportion))
+
+plastic_type_distribution |>
+  gt(groupname_col = "wealth_group") |>
+  fmt_percent(columns = proportion) |>
+  fmt_number(columns = total, decimals = 0) |>
+  cols_label(plastic_type = "Plastic Type", total = "Total Plastic", proportion = "Proportion") |>
+  tab_header(title = md("**Distribution of Plastic Waste Types by Income Level**"), subtitle = "Composition within each wealth group") |>
+  tab_options(row_group.background.color = "#EB6964")
+
 ```
 
 ```{r}
