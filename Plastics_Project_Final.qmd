@@ -51,7 +51,7 @@ The data comes from Break Free from Plastic (BFFP) courtesy of Sarah Sauve. The 
 ```{r}
 #| label: Summary 1 (non-modified, iteration, custom function)
 #| fig-alt: "Table displaying proportions of plastic type compared to the total in 2019 and 2020 and the change in those proportions between the years"
-#| fig-cap: "Figure 1 shows the changes in proportions of each plastic type used from 2019 to 2020, with pp showing about a 14% increase and other showing about a 23% decrease."
+#| fig-cap: "Figure 1 shows the changes in proportions of each plastic type used from 2019 to 2020, with pp showing about a 14% increase and other showing about a 22% decrease."
 
 plastic_types <- c("hdpe", "ldpe", "pet", "pp", "ps", "pvc", "o")
 
@@ -105,7 +105,7 @@ map_dfr(plastic_types, Prop_change) |>
 ```{r}
 #| label: Summary 2 (non-modified)
 #| fig-alt: "Table displaying year over year increase in plastic type usage in 2019 and 2020."
-#| fig-cap: "Figure 2 shows how plastic types increased from 2019 to 2020, with pvc showing the most increase with about 666% and other showing the most decrease with about 42%."
+#| fig-cap: "Figure 2 shows how plastic types increased from 2019 to 2020, with pvc showing the most increase with about 364% and other showing the most decrease with about 49%."
 
 plastics |>
   filter(parent_company != "Grand Total") |>
@@ -213,11 +213,7 @@ plastics |>
 
 ## Research Question 2
 
-<<<<<<< HEAD
-RQ: How does the distribution of plastic waste types change with the different income levels of countries?
-=======
 RQ: How does the distribution of plastic waste change with the different income levels of countries?
->>>>>>> 67190c81f953213ffaf08a17fd3a169fb2a66cf8
 
 ### Data Context
 
@@ -434,7 +430,7 @@ table_data |>
 ```{r}
 #| label: Statistical Model for Data in Summary 3/Figure 5
 #| fig-alt: "Table displaying the differences in proportions of plastic waste based on income class organized from 2019 to 2020."
-#| fig-cap: "The chi-squared model we created shows how there was significant evidence of differences present in proportions of plastic waste based on income class from 2019 to 2020."
+#| fig-cap: "A chi-square test of independence was conducted to examine whether the distribution of plastic waste types differs across income groups. The results were statistically significant (χ²(24) = 126,217.89, p-value < 0.001), indicating that the distribution of plastic waste types differs across income groups."
 
 plastics_country <- Updated_Plastics |>
   group_by(country, year, gdp) |>   
@@ -511,7 +507,7 @@ tibble(
             locations = list(cells_column_labels(), cells_title(groups = "subtitle")))
   
 ```
-A chi-square test of independence was conducted to examine whether the distribution of plastic waste types differs across income groups. The results were statistically significant (χ²(24) = 126,217.89, p-value < 0.001), indicating that the distribution of plastic waste types differs across income groups.
+
 
 ```{r}
 #| label: Summary 4 (modified)
