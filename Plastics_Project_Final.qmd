@@ -213,10 +213,10 @@ plastics |>
 
 ### Research Question 2
 
->>>>>>> ffff4491422c6800c31445163bfeb64cf85adbc4
-
+RQ: How does the distribution of plastic waste types change with the different income levels of countries?
+  
 ## Data Context
-
+  
 ```{r}
 # note: GDP data comes from Check In 2
 
@@ -235,7 +235,7 @@ plastics <- plastics |>
     "Turkey" = "Türkiye",
     "United Kingdom" = "United Kingdom of Great Britain and Northern Ireland",
     "Vietnam" = "Viet Nam",
-   "Korea" = "Korea, Republic of",
+    "Korea" = "Korea, Republic of",
     "United Kingdom of Great Britain & Northern Ireland" = "United Kingdom of Great Britain and Northern Ireland"
   ))
 
@@ -285,8 +285,8 @@ Languages <- map(codes, collect_api_data)
 Language_pivot <- function(list_df){
   list_df |>
     pivot_longer(cols = everything(),
-               names_to = 'Code',
-               values_to = 'Language') |>
+                 names_to = 'Code',
+                 values_to = 'Language') |>
     select(Language)
 }
 
@@ -374,12 +374,170 @@ table_data |> group_by(year) |>
   gt() |>
   fmt_percent(columns = proportion) |>
   fmt_number(columns = total_plastic, decimals = 0) |>
-   fmt_number(columns = global_total, decimals = 0) |>
+  fmt_number(columns = global_total, decimals = 0) |>
   tab_header(title = md("**Proportion of Plastic Waste per Income**"), subtitle = "By Year") |>
   cols_label(wealth_group = "Wealth Group", total_plastic = "Total Plastic", global_total = "Global Total", proportion = "Proportion") |>
   tab_options(row_group.background.color = "#EB6964")
-               
+
 ```
+```{r}
+#| label: summary 4 (modified)
+
+plastic_type_distribution <- Updated_Plastics |>
+  pivot_longer(
+    cols = c(hdpe, ldpe, o, pet, pp, ps, pvc),
+    names_to = "plastic_type",
+    values_to = "plastic_share"
+  ) |>
+  mutate(
+    plastic_amount = total_plastic * plastic_share
+  ) |>
+  group_by(wealth_group, plastic_type) |>
+  summarise(
+    total = sum(plastic_amount, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  group_by(wealth_group) |>
+  mutate(
+    proportion = total / sum(total)
+  ) |>
+  ungroup() |>
+  arrange(wealth_group, desc(proportion))
+
+plastic_type_distribution |>
+  gt(groupname_col = "wealth_group") |>
+  fmt_percent(columns = proportion) |>
+  fmt_number(columns = total, decimals = 0) |>
+  cols_label(plastic_type = "Plastic Type", total = "Total Plastic", proportion = "Proportion") |>
+  tab_header(title = md("**Distribution of Plastic Waste Types by Income Level**"), subtitle = "Composition within each wealth group") |>
+  tab_options(row_group.background.color = "#EB6964")
+
+```
+
+```{r}
+# Statistical Model
+
+plastics_country <- Updated_Plastics |>
+  group_by(country, year, gdp) |>   
+  summarize(
+    hdpe = sum(hdpe, na.rm = TRUE), 
+    ldpe = sum(ldpe, na.rm = TRUE),
+    o = sum(o, na.rm = TRUE),
+    pet = sum(pet, na.rm = TRUE),
+    pp = sum(pp, na.rm = TRUE),
+    ps = sum(ps, na.rm = TRUE),
+    pvc = sum(pvc, na.rm = TRUE),
+    .groups = "drop"               
+  ) |>
+  mutate(
+    wealth_group = factor(
+      ntile(gdp, 5),
+      labels = c("Low", "Lower-Middle", "Middle", "Upper-Middle", "High")
+    )
+  )
+
+plastics_counts <- Updated_Plastics |>
+  mutate(
+    wealth_group = factor(
+      ntile(gdp, 5),
+      labels = c("Low", "Lower-Middle", "Middle", "Upper-Middle", "High")
+    ) 
+  ) |>
+  pivot_longer(
+    cols = c(hdpe, ldpe, o, pet, pp, ps, pvc),
+    names_to = "plastic_type",
+    values_to = "plastic_amount"
+  ) |>
+  group_by(wealth_group, plastic_type) |>
+  summarize(
+    total_plastic = sum(plastic_amount, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  pivot_wider(
+    names_from = plastic_type,
+    values_from = total_plastic
+  )
+
+plastics_matrix <- as.matrix(plastics_counts[, -1])
+rownames(plastics_matrix) <- plastics_counts$wealth_group
+
+chisq.test(plastics_matrix)
+
+```
+
+## Data Visualizations
+
+```{r}
+#| fig-alt: "Ridgeline Plot Displaying the Total Plastic Waste Divided by Wealth Groups in Different Countries from 2019-2020"
+#| fig-cap: "Figure 1. Distribution of Total Plastic Waste by Wealth Group."
+
+Updated_Plastics |>
+  mutate(
+    wealth_group = factor(
+      ntile(gdp, 5),
+      labels = c("Low", "Lower-Middle", "Middle", "Upper-Middle", "High")
+    )
+  ) |>
+  ggplot(aes(x = total_plastic, y = wealth_group, fill = wealth_group)) +
+  geom_density_ridges(alpha = 0.7) +
+  scale_fill_brewer(palette = "Set3") +
+  labs(
+    title = "Distribution of Total Plastic Waste by Wealth Group",
+    x = "Total Plastic Waste",
+    y = "Wealth Group",
+    fill = "Wealth Group"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+#| fig-alt: "Segmented Bar Graph Displaying the Proportion of Average Plastic Types Used Divided by Wealth Groups in Different Countries from 2019-2020"
+#| fig-cap: "Figure 2. Proportion of Average Plastic Types by Wealth Group."
+
+plastics_country <- Updated_Plastics |>
+  group_by(country, year, gdp) |>   
+  summarize(
+    hdpe = sum(hdpe, na.rm = TRUE), 
+    ldpe = sum(ldpe, na.rm = TRUE),
+    o = sum(o, na.rm = TRUE),
+    pet = sum(pet, na.rm = TRUE),
+    pp = sum(pp, na.rm = TRUE),
+    ps = sum(ps, na.rm = TRUE),
+    pvc = sum(pvc, na.rm = TRUE),
+    .groups = "drop"               
+  ) |>
+  mutate(
+    wealth_group = factor(
+      ntile(gdp, 5),
+      labels = c("Low", "Lower-Middle", "Middle", "Upper-Middle", "High")
+    )
+  )
+
+plastics_country |>
+  pivot_longer(
+    cols = c(hdpe, ldpe, o, pet, pp, ps, pvc),
+    names_to = "plastic_type",      
+    values_to = "plastic_amount"    
+  ) |>
+  group_by(wealth_group, plastic_type) |>
+  summarize(
+    avg_plastic = mean(plastic_amount, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  ggplot(aes(x = wealth_group, y = avg_plastic, fill = plastic_type)) +
+  geom_col(position = "fill") +   
+  scale_fill_brewer(palette = "Set2") +
+  labs(
+    title = "Proportion of Average Plastic Types by Wealth Group",
+    x = "Wealth Group",
+    y = "Proportion",
+    fill = "Plastic Type"
+  ) +
+  theme_minimal()
+
+```
+
 ```{r}
 #| label: summary 4 (modified)
 
@@ -464,8 +622,6 @@ rownames(plastics_matrix) <- plastics_counts$wealth_group
 chisq.test(plastics_matrix)
 
 ```
-
-<<<<<<< HEAD
 ## Data Visualizations
 
 ```{r}
@@ -538,6 +694,3 @@ plastics_country |>
   theme_minimal()
 
 ```
-=======
-## Data Visualizations
->>>>>>> ffff4491422c6800c31445163bfeb64cf85adbc4
