@@ -1,5 +1,5 @@
 ---
-title: "Project 1(Plastic)"
+title: "Plastics During COVID: A Comparative Analysis of Plastic Waste from 2019-2020"
 author: "Tyler Kinney, Greyson Ballesteros"
 format: 
   html:
@@ -20,6 +20,7 @@ execute:
 
 ```{r}
 #| label: packages-setup
+#| echo: false
 library(tidyverse)
 library(glue)
 library(here)
@@ -32,9 +33,11 @@ library(scales)
 library(ggtext)
 ```
 
-## Research Question 1
+The introduction of novel coronavirus became a defining moment in global history when it made its first public appearance in Wuhan, China. The epidemic spread like wildfire, and has altered the course of humanity to this day. As the virus took its toll, humans began exhausting its resources like never before; one of these resources, of course, was plastics. As students that survived through the peak of COVID-19, we were interested in how the usage of plastics changed from 2019 to 2020, a span of years that has become one of the most relevant turning points in our lives.
 
-RQ: Has the types of plastics that are being used changed significantly from 2019 to 2020?
+## Plastic Usage Year to Year
+
+Has the types of plastics that are being used changed significantly from 2019 to 2020?
 
 ### Data Context
 
@@ -44,14 +47,15 @@ tuesdata <- tidytuesdayR::tt_load('2021-01-26')
 plastics <- tuesdata$plastics
 ```
 
-The data comes from Break Free from Plastic (BFFP) courtesy of Sarah Sauve. The observational unit is one cleaning project. The data contains variables relating to types of plastic, where the plastic comes from, and country. The columns in the data have been assigned certain classes like (double, character). They also cleaned the names of the columns using the janitor package. They also took two data sets from 2019 and 2020 and bound the rows together. The audit was completed in October of 2020, implying that the data was collected during that audit. The data was collected as part of a bigger project to understand the sources of plastic in different cities.
+The data comes from Break Free from Plastic (BFFP) courtesy of Sarah Sauve. The observational unit is one cleaning project. The data contains variables relating to types of plastic, where the plastic comes from, and country. The columns in the data have been assigned certain classes like "double" or "character". The creators of the data set also cleaned the names of the columns using the janitor package. They also took two data sets from 2019 and 2020 and bound the rows together. The audit was completed in October of 2020, implying that the data was collected during that time frame The data was collected as part of a bigger project to understand the sources of plastic in different cities.
 
-### Summary Tables
+### Analysis
+
+To start, we wanted to create a table that showed proportional differences in countries' usage of different plastic types from 2019 to 2020. The plastics we investigated were hdpe (high density polyethylene), ldp (low density polyethylene), pet (polyester plastic), pp (polypropylene), ps (polystyrene), pvc (polyvinyl chloride), and o (other plastic).
 
 ```{r}
 #| label: Summary 1 (non-modified, iteration, custom function)
 #| fig-alt: "Table displaying proportions of plastic type compared to the total in 2019 and 2020 and the change in those proportions between the years"
-#| fig-cap: "Figure 1 shows the changes in proportions of each plastic type used from 2019 to 2020, with pp showing about a 14% increase and other showing about a 22% decrease."
 
 plastic_types <- c("hdpe", "ldpe", "pet", "pp", "ps", "pvc", "o")
 
@@ -78,7 +82,7 @@ map_dfr(plastic_types, Prop_change) |>
   arrange(change) |>
   gt() |>
   tab_header(title = md("**Proportions of Each Plastic Type**"),
-             subtitle = "and Changes in Those proportions (2020-2019)") |>
+             subtitle = "Changes in Proportions (2019-2020)") |>
   fmt_percent(columns = c(`change`, prop_2019, prop_2020),
               decimals = 2) |>
   cols_label(plastic_type = "Type",
@@ -89,6 +93,7 @@ map_dfr(plastic_types, Prop_change) |>
               column_labels.background.color = "lightgrey",
               row.striping.background_color = "lightgrey",
               row.striping.include_table_body = TRUE) |>
+  tab_caption(caption = "Table 1") |>
   tab_style(style = cell_text(weight = "bold"),
             locations = cells_column_labels(everything())) |>
   tab_style(style = cell_borders(sides = "bottom",
@@ -102,82 +107,12 @@ map_dfr(plastic_types, Prop_change) |>
   
 ```
 
-```{r}
-#| label: Summary 2 (non-modified)
-#| fig-alt: "Table displaying year over year increase in plastic type usage in 2019 and 2020."
-#| fig-cap: "Figure 2 shows how plastic types increased from 2019 to 2020, with pvc showing the most increase with about 364% and other showing the most decrease with about 49%."
-
-plastics |>
-  filter(parent_company != "Grand Total") |>
-  pivot_longer(cols = c(hdpe, ldpe, o, pet, pp, ps, pvc, grand_total),
-               names_to = "plastic_type",
-               values_to = "amount") |>
-  group_by(plastic_type, year) |>
-  summarize(total = sum(amount, na.rm = TRUE), .groups = "drop") |>
-  arrange(plastic_type, year) |>
-  group_by(plastic_type) |>
-  mutate(`2019_2020_YoY` = (total - lag(total)) / lag(total)) |>
-  filter(!is.na(`2019_2020_YoY`)) |>
-  select(-total, -year) |>
-  arrange(`2019_2020_YoY`) |>
-  ungroup() |>
-  gt() |>
-  tab_header(title = md("**Year Over Year Increase in Types of Plastic Use**"),
-             subtitle = "Calculated from 2020") |>
-  fmt_percent(columns = `2019_2020_YoY`,
-              decimals = 2) |>
-  cols_label(plastic_type = "Type",
-             `2019_2020_YoY` = "YoY Increase") |>
-  tab_options(heading.background.color = "#EB6864",
-              column_labels.background.color = "lightgrey",
-              row.striping.background_color = "lightgrey",
-              row.striping.include_table_body = TRUE) |>
-  tab_style(style = cell_text(weight = "bold"),
-            locations = cells_column_labels(everything())) |>
-  tab_style(style = cell_borders(sides = "bottom",
-            color = "#333333",
-            weight = px(2)),
-            locations = list(cells_column_labels(), cells_title(groups = "subtitle"))) |>
-  data_color(columns = `2019_2020_YoY`,
-             colors = col_numeric(
-             palette = c("lightgreen", "white", "#D95C5C"),
-             domain = NULL))
-
-```
-
-### Data Visualizations
+Table 1 shows the changes in proportions of each plastic type used from 2019 to 2020. We can see that pp shows about a 14% increase in usage and other plastics showing about a 22% decrease in usage between the two years.
 
 ```{r}
 #| label: Visual 1
-#| fig-alt: "Segmented bargraph displaying the distribution of plastic types in 2019 and 2020"
-#| fig-cap: "Figure 3 shows the proportion of plastic types used per year from 2019 to 2020, with the graph showing that pp increased the most in usage and other decreased the most in usage."
-
-journal_colors <- c("#FFFFFF", "#F8D6D6", "#F1ADAD", "#EA8585", "#E35C5C", "#DE4C4C", "#D95C5C")
-
-plastics |>
-  pivot_longer(cols = c(hdpe, ldpe, o, pet, pp, ps, pvc),
-               names_to = "plastic_type",
-               values_to = "plastic_amount") |>
-  filter(parent_company != "Grand Total",
-         !is.na(plastic_amount)) |>
-  group_by(year, plastic_type) |>
-  summarize(total = sum(plastic_amount, na.rm = TRUE),
-            .groups = "drop") |>
-  ggplot(aes(x = factor(year), y = total, fill = plastic_type)) +
-  geom_col(position = "fill") +
-  scale_y_continuous(labels = label_percent()) +
-  labs(title = "Proportion of Plastic Types by Year",
-       x = "Year",
-       y = "Proportion",
-       fill = "Plastic Type") +
-  theme_light() +
-  scale_fill_manual(values = journal_colors)
-```
-
-```{r}
-#| label: Visual 2
 #| fig-alt: "Slope graph showing changes in Proportions of each plastic type used from 2019 to 2020"
-#| fig-cap: "Figure 4 shows the changes in proportion of plastic type usage per year from 2019 to 2020, with pp increasing the most and other decreasing the most."
+#| fig-cap: "Figure 1 shows the changes in proportion of plastic type usage per year from 2019 to 2020, with pp increasing the most and other decreasing the most."
 
 plastics |>
   pivot_longer(cols = hdpe:pvc,
@@ -211,9 +146,85 @@ plastics |>
   theme(plot.subtitle = element_markdown())
 ```
 
-## Research Question 2
+Next, we wanted to investigate how countries' plastic type year over year usage changed from 2019 to 2020, and we analyzed the same types of plastics.
 
-RQ: How does the distribution of plastic waste change with the different income levels of countries?
+```{r}
+#| label: Summary 2 (non-modified)
+#| fig-alt: "Table displaying year over year increase in plastic type usage in 2019 and 2020."
+
+plastics |>
+  filter(parent_company != "Grand Total") |>
+  pivot_longer(cols = c(hdpe, ldpe, o, pet, pp, ps, pvc, grand_total),
+               names_to = "plastic_type",
+               values_to = "amount") |>
+  group_by(plastic_type, year) |>
+  summarize(total = sum(amount, na.rm = TRUE), .groups = "drop") |>
+  arrange(plastic_type, year) |>
+  group_by(plastic_type) |>
+  mutate(`2019_2020_YoY` = (total - lag(total)) / lag(total)) |>
+  filter(!is.na(`2019_2020_YoY`)) |>
+  select(-total, -year) |>
+  arrange(`2019_2020_YoY`) |>
+  ungroup() |>
+  gt() |>
+  tab_header(title = md("**Year Over Year Increase in Types of Plastic Use**"),
+             subtitle = "Calculated from 2020") |>
+  fmt_percent(columns = `2019_2020_YoY`,
+              decimals = 2) |>
+  cols_label(plastic_type = "Type",
+             `2019_2020_YoY` = "YoY Increase") |>
+  tab_options(heading.background.color = "#EB6864",
+              column_labels.background.color = "lightgrey",
+              row.striping.background_color = "lightgrey",
+              row.striping.include_table_body = TRUE) |>
+  tab_caption(caption = "Table 2") |>
+  tab_style(style = cell_text(weight = "bold"),
+            locations = cells_column_labels(everything())) |>
+  tab_style(style = cell_borders(sides = "bottom",
+            color = "#333333",
+            weight = px(2)),
+            locations = list(cells_column_labels(), cells_title(groups = "subtitle"))) |>
+  data_color(columns = `2019_2020_YoY`,
+             colors = col_numeric(
+             palette = c("lightgreen", "white", "#D95C5C"),
+             domain = NULL))
+
+```
+
+Table 2 shows the differences in plastic type usage measured as a proportion from 2019 to 2020. We observe that pvc shows the most increase in usage with about 364% and other plastic shows the most decrease with about 49%.
+
+```{r}
+#| label: Visual 2
+#| fig-alt: "Segmented bargraph displaying the distribution of plastic types in 2019 and 2020"
+#| fig-cap: "Figure 2 shows the proportion of plastic types used per year from 2019 to 2020, with the graph showing that pp increased the most in usage and other decreased the most in usage."
+
+journal_colors <- c("#FFFFFF", "#F8D6D6", "#F1ADAD", "#EA8585", "#E35C5C", "#DE4C4C", "#D95C5C")
+
+plastics |>
+  pivot_longer(cols = c(hdpe, ldpe, o, pet, pp, ps, pvc),
+               names_to = "plastic_type",
+               values_to = "plastic_amount") |>
+  filter(parent_company != "Grand Total",
+         !is.na(plastic_amount)) |>
+  group_by(year, plastic_type) |>
+  summarize(total = sum(plastic_amount, na.rm = TRUE),
+            .groups = "drop") |>
+  ggplot(aes(x = factor(year), y = total, fill = plastic_type)) +
+  geom_col(position = "fill") +
+  scale_y_continuous(labels = label_percent()) +
+  labs(title = "Proportion of Plastic Types by Year",
+       x = "Year",
+       y = "Proportion",
+       fill = "Plastic Type") +
+  theme_light() +
+  scale_fill_manual(values = journal_colors)
+
+#### NEED TO CHANGE
+```
+
+## Plastic Usage by Income Level
+
+How does the distribution of plastic waste change with the different income levels of countries?
 
 ### Data Context
 
@@ -361,22 +372,23 @@ Updated_Plastics <- plastics_w_code |>
   mutate(wealth_group = factor(ntile(gdp, 5), labels = c("Low", "Lower-Middle", "Middle", "Upper-Middle", "High")),
          plastic_per_gdp = total_plastic / gdp)
 
+### DELETE API RELATED DATA
+
 ```
 
-In order to assemble Updated_Plastics, we used the following data:
+In order to assemble our Updated_Plastics dataset, we used the following data:
 
 The GDP data is the country official statistics from the National Statistical Organizations and/or Central Banks. The observational unit is a country. The data has been collected since 1960 all the way up to 2024. It was obtained via the National Accounts data files, the Organisation for Economic Co-operation and Development (OECD), staff estimates, and the World Bank (WB). The data was collected for many reasons, but mainly for understanding and managing a country's economy.
 
-The API data was collected and published by the REST Countries API project from official sources such as the United Nations, World Bank, and national statistical agencies. The observational unit is a country. It doesn't represent a single collection date. The data was collected indirectly by various sources via national censuses, surveys, and administrative records. The data was collected to provide a general country-level information about demographics and economies.
-
 The country code data was collected by Luke Duncalfe. The observational unit is one country. The last revision made on the UN Statistical data was on June 19, 2024, from a document last revised on June 6, 2024. It was merged from both Wikipedia and the UN M49 Standard country or area codes for statistical data use. We chose to collect this data in order to make the links for the API we were using.
 
-### Summary Tables
+### Analysis
+
+For this section, we wanted to dive deeper into the distribution of plastic type usage by country from 2019 to 2020, but broken down by the wealth group/income level of each country.
 
 ```{r}
 #| label: Summary 3 (modified, Custom Function, Iteration)
 #| fig-alt: "Table displaying the differences in proportions of plastic waste based on income class organized from 2019 to 2020."
-#| fig-cap: "Figure 5 shows the proportion of plastic waste expulsion per country's income class from 2019 to 2020, with the lower-middle and middle classes using the most plastic waste and the low class using the least plastic waste."
 
 years <- c(2019, 2020)
 
@@ -414,6 +426,7 @@ table_data |>
               column_labels.background.color = "lightgrey",
               row.striping.background_color = "lightgrey",
               row.striping.include_table_body = TRUE) |>
+  tab_caption(caption = "Table 3") |>
   tab_style(style = cell_text(weight = "bold"),
             locations = cells_column_labels(everything())) |>
   tab_style(style = cell_borders(sides = "bottom",
@@ -427,10 +440,11 @@ table_data |>
 
 ```
 
+Table 3 shows the proportion of plastic waste expulsion per country's income class from 2019 to 2020. We can see that according to the table, the lower-middle and middle classes using the most plastic waste, while the lower class using the least plastic waste.
+
 ```{r}
-#| label: Statistical Model for Data in Summary 3/Figure 5
+#| label: Statistical Model for Data in Summary 3/Figure 3
 #| fig-alt: "Table displaying the differences in proportions of plastic waste based on income class organized from 2019 to 2020."
-#| fig-cap: "A chi-square test of independence was conducted to examine whether the distribution of plastic waste types differs across income groups. The results were statistically significant (χ²(24) = 126,217.89, p-value < 0.001), indicating that the distribution of plastic waste types differs across income groups."
 
 plastics_country <- Updated_Plastics |>
   group_by(country, year, gdp) |>   
@@ -499,6 +513,7 @@ tibble(
     title = md("**Chi-square Test of Plastic Waste Type by Income Group**"),
     subtitle = "Testing whether plastic waste type distribution differs across income levels"
   ) |>
+  tab_caption(caption = "Table 4") |>
   tab_options(heading.background.color = "#EB6864",
               column_labels.background.color = "lightgrey") |>
   tab_style(style = cell_borders(sides = "bottom",
@@ -508,11 +523,40 @@ tibble(
   
 ```
 
+Table 4 displays a chi-square test of independence that was conducted to examine whether the distribution of plastic waste types differs across income groups. The results were statistically significant (χ²(24) = 126,217.89, p-value \< 0.001), indicating that the distribution of plastic waste types differs across income groups.
+
+```{r}
+#| label: Visual 3
+#| fig-alt: "Ridgeline plot displaying the total plastic waste divided by wealth groups in different countries from 2019 to 2020"
+#| fig-cap: "Figure 3 shows how the total plastic waste was divided by income class in different countries from 2019 to 2020, with the middle class making the most and the low and high classes making the least."
+
+journal_colors <- c("#FFFFFF", "#F8D6D6", "#F1ADAD", "#EA8585", "#E35C5C", "#DE4C4C", "#D95C5C")
+
+Updated_Plastics |>
+  mutate(
+    wealth_group = factor(
+      ntile(gdp, 5),
+      labels = c("Low", "Lower-Middle", "Middle", "Upper-Middle", "High")
+    )
+  ) |>
+  ggplot(aes(x = total_plastic, y = wealth_group, fill = wealth_group)) +
+  geom_density_ridges(alpha = 0.7) +
+  scale_fill_manual(values = journal_colors) +
+  labs(
+    title = "Distribution of Total Plastic Waste by Wealth Group",
+    x = "Total Plastic Waste",
+    y = "Wealth Group",
+    fill = "Wealth Group"
+  ) +
+  theme_minimal()
+
+```
+
+We then wanted to explore how the distributions of plastic type usage changed between the two years, specifically how they fluctuated within the different wealth group/income levels.
 
 ```{r}
 #| label: Summary 4 (modified)
 #| fig-alt: "Table displaying the differences in proportions of each plastic waste type based on income class from 2019 to 2020."
-#| fig-cap: "Figure 6 shows the distribution of proportions of plastic waste types across different income levels from 2019 to 2020, with other being used the most by the middle class and pvc being used the least by the low class."
 
 plastic_type_distribution <- Updated_Plastics |>
   pivot_longer(
@@ -541,6 +585,7 @@ plastic_type_distribution |>
   fmt_number(columns = total, decimals = 0) |>
   cols_label(plastic_type = "Plastic Type", total = "Total Plastic", proportion = "Proportion") |>
   tab_header(title = md("**Distribution of Plastic Waste Types by Income Level**"), subtitle = "Composition within each wealth group") |>
+  tab_caption(caption = "Table 5") |>
   tab_options(row_group.background.color = "#EB6964",
               heading.background.color = "#EB6964",
               column_labels.background.color = "lightgrey",
@@ -559,39 +604,12 @@ plastic_type_distribution |>
 
 ```
 
-### Data Visualizations
-
-```{r}
-#| label: Visual 3
-#| fig-alt: "Ridgeline plot displaying the total plastic waste divided by wealth groups in different countries from 2019 to 2020"
-#| fig-cap: "Figure 7 shows how the total plastic waste was divided by income class in different countries from 2019 to 2020, with the middle class making the most and the low and high classes making the least."
-
-journal_colors <- c("#FFFFFF", "#F8D6D6", "#F1ADAD", "#EA8585", "#E35C5C", "#DE4C4C", "#D95C5C")
-
-Updated_Plastics |>
-  mutate(
-    wealth_group = factor(
-      ntile(gdp, 5),
-      labels = c("Low", "Lower-Middle", "Middle", "Upper-Middle", "High")
-    )
-  ) |>
-  ggplot(aes(x = total_plastic, y = wealth_group, fill = wealth_group)) +
-  geom_density_ridges(alpha = 0.7) +
-  scale_fill_manual(values = journal_colors) +
-  labs(
-    title = "Distribution of Total Plastic Waste by Wealth Group",
-    x = "Total Plastic Waste",
-    y = "Wealth Group",
-    fill = "Wealth Group"
-  ) +
-  theme_minimal()
-
-```
+Table 5 shows the distribution of proportions of plastic waste types across different income levels from 2019 to 2020. Some observations we made were that other plastics were used the most by the middle class, and pvc was used the least by the lower class.
 
 ```{r}
 #| label: Visual 4
 #| fig-alt: "Segmented bar graph displaying the proportion of average plastic types divided by wealth groups in different countries from 2019 to 2020"
-#| fig-cap: "Figure 8 shows the proportion of average plastic types used by different income levels from 2019 to 2020. Lower-middle uses a lot of pet, middle uses a lot of pp, and upper-middle uses a lot of other plastics."
+#| fig-cap: "Figure 4 shows the proportion of average plastic types used by different income levels from 2019 to 2020. Lower-middle uses a lot of pet, middle uses a lot of pp, and upper-middle uses a lot of other plastics."
 
 plastics_country <- Updated_Plastics |>
   group_by(country, year, gdp) |>   
@@ -637,3 +655,12 @@ plastics_country |>
   theme_minimal()
 
 ```
+
+## Conclusion
+
+Overall, our analysis shows that plastic usage patterns shifted noticeably between the years of the start of the COVID-19 pandemic. We found that polypropylene (pp) had the most proportional increase, whereas "other" plastics exhibited a substantial decline. Additionally, some plastic types such as pvc (polyvinyl chloride) experienced dramatic year-over-year increases, suggesting changes in consumption behaviors during the epidemic.
+
+When examining plastic waste by country income level, we observed that middle and lower-middle income groups contributed the largest share of plastic waste, while low and high income groups contributed the least. The chi-square test confirmed that the distribution of plastic types differs significantly across income levels, indicating that economic factors play an important role in shaping plastic consumption patterns.
+
+In conclusion, these findings suggest that from 2019 to 2020, global events like COVID-19 and underlying economic differences between countries influenced not only how much plastic was used, but also what types of plastics were the most prevalent.
+
