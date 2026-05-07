@@ -85,33 +85,6 @@ country_plas_diff('Ukraine', 'China')
 
 from 2019 to 2020 the gap in total plastic produced between Ukraine and china has grown more than 100%
 
-```{r}
-#| label: Summary 1  (Iteration)
-
-# Has the types of plastics that are being used changed significantly from 2019 to 2020
-
-plastic_types <- c("hdpe", "ldpe", "pet", "pp", "ps", "pvc", "o", "grand_total")
-
-changes <- map_dbl(plastic_types,
-                   function(type) {
-                      plastics |>
-                        group_by(year) |>
-                        summarize(total = sum(type, na.rm = TRUE),
-                                  .groups = "drop") |>
-                        arrange(year) |>
-                        pull(total) |>
-                      diff()
-                      }
-                   )
-
-tibble(plastic_type = plastic_types,
-       `2020-2019` = changes)
-```
-
-```{r}
-#| label: Summary 2
-```
-
 most types of plastics are being used less in 2020 when compared to 2019, the only exceptions being Polypropylene and Polyvinyl chloride
 
 ```{r}
@@ -269,7 +242,7 @@ collect_api_data <- function(code) {
 
 # iterate through unique codes
 
-?pLanguages <- map(codes, collect_api_data)
+Languages <- map(codes, collect_api_data)
 
 # given a list of data frames formatted weirdly, so pivoting
 
